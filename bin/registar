@@ -1,0 +1,39 @@
+#!/usr/bin/env ruby
+#
+#   Author: Rohith
+#   Date: 2014-10-10 20:53:59 +0100 (Fri, 10 Oct 2014)
+#
+#  vim:ts=2:sw=2:et
+#
+require 'rubygems' if RUBY_VERSION < '1.9.0'
+require 'service-registar'
+require 'optionscrapper'
+
+module ServiceRegistar
+  class Registrator
+    def initialize
+      begin
+
+      rescue SystemExit => e
+
+      rescue Exception => e
+
+      end
+    end
+
+    private
+
+
+
+    def parser
+      parser ||= OptionScrapper.new do |o|
+        o.on( '-c CONFIG', '--config CONFIG', 'the configuration file for the registration service' ) { |x| options[:config] = x }
+        o.on( '-v', '--verbose', 'switch into verbose logging mode' ) { |x| options[:verbose] = true }
+
+
+      end
+    end
+  end
+end
+
+ServiceRegistar::Registrator.new

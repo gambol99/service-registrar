@@ -1,0 +1,19 @@
+#
+#   Author: Rohith
+#   Date: 2014-10-10 20:59:44 +0100 (Fri, 10 Oct 2014)
+#
+#  vim:ts=2:sw=2:et
+#
+docker: unix:///var/run/docker.sock
+interval: 2000
+timetolive: 15000
+log: /var/log/services.log
+loglevel: INFO
+backend:: zookeeper
+backends:
+  zookeeper:
+    uri: 'zk://zoo1:2181,zoo2:2181'
+    path: /services
+  etcd:
+    uri: 'etcd:port,etcd:port'
+    path: /services
