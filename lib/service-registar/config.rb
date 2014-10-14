@@ -6,27 +6,29 @@
 #
 module ServiceRegistar
   module Configuration
-    class Settings
-      def self.default_options
-        {
-          'docker'      => 'unix:///var/run/docker.sock',
-          'interval'    => '5000',
-          'timetolive'  => '12000',
-          'log'         => '/var/log/registar.log',
-          'loglevel'    => 'INFO',
-          'backend'     => 'zookeeper',
-          'backends'    => {
-            'zookeeper' => {
-              'uri'   => 'zk://localhost:2181',
-              'path'  => '/services',
-            }
+    def default_options
+      {
+        'docker'      => 'unix:///var/run/docker.sock',
+        'interval'    => '5000',
+        'timetolive'  => '12000',
+        'log'         => '/var/log/registar.log',
+        'loglevel'    => 'INFO',
+        'backend'     => 'zookeeper',
+        'backends'    => {
+          'zookeeper' => {
+            'uri'   => 'zk://localhost:2181',
+            'path'  => '/services',
           }
         }
-      end
+      }.dup
+    end
 
-      def self.[]
+    def set_default_options config
+      config.merge!( default_options )
+    end
 
-      end
+    def settings
+      @settings ||= {}
     end
 
     def options default_options = {}
@@ -35,17 +37,27 @@ module ServiceRegistar
 
     private
     def validate_configuration config
-      raise ArgumentError, "you have not specified any configuration file" unless config
-      # step: validate the configuration file
+      # step: start by loading the configuration if we have one
+      @configuration = load_configuration config['config']
+      # step: merge the
+
+      # step: start by bringing in the default options and merge user defined options
+      @configuration = default_options.merge!( config )
+      # step: now validate we have everything
       validate_config_file config
-      # step: read in the configuration and validate
+      # step: read in the configuration
       configuration = load_configuration config
       # step: check we have everything we need
       required_settings %(docker interval ttl log loglevel backend backends), configuration
       # step: check the actual settings
       raise ArgumentError, "interval should be a positive integer" unless postive_integer? configuration['interval']
       raise ArgumentError, "ttl should be positive integer"        unless postive_integer? configuration['ttl']
+    end
 
+    def validate_config_file config
+      raise ArgumentError, "you have not specified any configuration file" unless config['config']
+      # step: validate the configuration file
+      validate_config_file config['config']
     end
 
     def validate_backend_configuration configuration
@@ -64,31 +76,8 @@ module ServiceRegistar
       end
     end
 
-    def postive_integer? value
-      ( !value.is_a? Integer or value <= 0 ) ? false : true
-    end
-
-    def required_settings list, supplied
-      list.each do |x|
-        raise ArgumentError, "you have not specified the #{x} options" unless supplied.has_key? x
-      end
-    end
-
-    def set_default_options config
-      config.merge!( default_options )
-    end
-
-    def load_configuration config, options = {}
-      # step: read in the configuration
-      config_data ||= YAML.load(File.read(config)) || {}
-      # step: merge in the suer defined options
-      config_data.merge( options )
-    end
-
-    def validate_config_file filename
-      raise ArgumentError, "the configuration: #{filename} does not exists" unless File.exists? filename
-      raise ArgumentError, "the configuration: #{filename} is not a file"   unless File.file? filename
-      raise ArgumentError, "the configuration: #{filename} is not readable" unless File.readable? filename
+    def load_configuration filename
+      ( filename ) ? YAML.load(File.read(filename)) : {}
     end
   end
 end

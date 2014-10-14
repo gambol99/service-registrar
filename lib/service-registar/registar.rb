@@ -4,25 +4,24 @@
 #
 #  vim:ts=2:sw=2:et
 #
+require 'thread'
+require 'docker-api'
+require 'config'
+require 'utils'
 require 'backends'
 require 'logging'
-require 'docker-api'
-require 'thread'
-require 'config'
 
 module ServiceRegistar
   class Registar
+    include ServiceRegistar::Utils
+    include ServiceRegistar::Configuration
     include ServiceRegistar::Logging
-    include ServiceRegistar::Config
     include ServiceRegistar::Backends
     include ServiceRegistar::Docker
-    include ServiceRsgistar::Statistics
 
     def initialize config = {}
-      # step: save the configuration in options
-      options config
-      # step: load the configuration file
-      validate_configuration options[:config]
+      # step: load and validate the configuration
+      validate_configuration config
     end
 
     private
