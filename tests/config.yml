@@ -6,7 +6,7 @@
 #
 docker: unix:///var/run/docker.sock
 interval: 2000
-timetolive: 15000
+ttl: 15000
 log: /var/log/services.log
 loglevel: INFO
 backend:: zookeeper
@@ -15,5 +15,10 @@ backends:
     uri: 'zk://zoo1:2181,zoo2:2181'
     path: /services
   etcd:
-    uri: 'etcd:port,etcd:port'
+    host: etcd
+    port: 4003
     path: /services
+
+statsd:
+  host: statds.domain.com
+  port: 8125

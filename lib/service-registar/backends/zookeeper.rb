@@ -19,6 +19,12 @@ module ServiceRegistar
       end
 
       private
+
+      def self.valid? configuration
+        return false unless configuration['uri']
+        true
+      end
+
       def ensure_pathway path
         root = ''
         zookeeper_path = path.gsub(/^\/+/,'')

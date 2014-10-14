@@ -22,10 +22,6 @@ module ServiceRegistar
       options config
       # step: load the configuration file
       validate_configuration options[:config]
-      # step: initialize the backend and load the plugin
-      initialize_backend options
-      # step: initialize the web interface
-      initialize_webui options
     end
 
     private
@@ -35,13 +31,6 @@ module ServiceRegistar
 
 
       end
-    end
-
-
-
-
-    def options default_options
-      @options ||= default_options.dup
     end
   end
 end

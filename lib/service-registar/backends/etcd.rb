@@ -14,6 +14,12 @@ module ServiceRegistar
       end
 
       private
+      def self.valid? configuration
+        return false unless configuration['host']
+        return false unless configuration['port']
+        true
+      end
+
       def etcd
         @etcd ||= connection
         @etcd   = connection unless @etcd.connected?

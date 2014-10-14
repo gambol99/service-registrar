@@ -8,9 +8,12 @@ module ServiceRegistar
   class Backend
     include ServiceRegistar::Logging
     attr_reader :config
-    def initialize config, logger
+    def initialize config
       @config = config
-      @logger = logger
+    end
+
+    def self.valid? configuration
+      false
     end
   end
 end

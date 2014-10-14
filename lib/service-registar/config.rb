@@ -29,18 +29,66 @@ module ServiceRegistar
       end
     end
 
+    def options default_options = {}
+      @options ||= default_options
+    end
+
     private
-    def validate_configutation config = options[:config]
+    def validate_configuration config
       raise ArgumentError, "you have not specified any configuration file" unless config
-      raise ArgumentError, "you have not specified the interval time" unless config['']
+      # step: validate the configuration file
+      validate_config_file config
+      # step: read in the configuration and validate
+      configuration = load_configuration config
+      # step: check we have everything we need
+      required_settings %(docker interval ttl log loglevel backend backends), configuration
+      # step: check the actual settings
+      raise ArgumentError, "interval should be a positive integer" unless postive_integer? configuration['interval']
+      raise ArgumentError, "ttl should be positive integer"        unless postive_integer? configuration['ttl']
+
+    end
+
+    def validate_backend_configuration configuration
+      backend = configuration['backend']
+      backend_config = configuration['backends'][backend] || {}
+      # check the backend exists
+      unless backends.include? backend
+        raise ArgumentError, "invalid backend, available backends are #{backends.join(',')}"
+      end
+      unless configuration['backends'].has_key? backend
+        raise ArgumentError, "you have not specified any backend configuration"
+      end
+      # check the backend config
+      unless backend_config? backend
+        raise ArgumentError, "invalid backend configuration for #{backend}" unless backend_config?
+      end
+    end
+
+    def postive_integer? value
+      ( !value.is_a? Integer or value <= 0 ) ? false : true
+    end
+
+    def required_settings list, supplied
+      list.each do |x|
+        raise ArgumentError, "you have not specified the #{x} options" unless supplied.has_key? x
+      end
     end
 
     def set_default_options config
       config.merge!( default_options )
     end
 
-    def configuration config = options[:config]
-      @configuration ||= YAML.load(File.read(config))
+    def load_configuration config, options = {}
+      # step: read in the configuration
+      config_data ||= YAML.load(File.read(config)) || {}
+      # step: merge in the suer defined options
+      config_data.merge( options )
+    end
+
+    def validate_config_file filename
+      raise ArgumentError, "the configuration: #{filename} does not exists" unless File.exists? filename
+      raise ArgumentError, "the configuration: #{filename} is not a file"   unless File.file? filename
+      raise ArgumentError, "the configuration: #{filename} is not readable" unless File.readable? filename
     end
   end
 end

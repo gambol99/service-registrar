@@ -8,7 +8,7 @@ require 'logger'
 
 module ServiceRegistar
   module Logging
-    Logger.init options[:loglevel] if options[:verbose]
+    Logger.init settings[:loglevel] if settings[:verbose]
 
     %w(info warn error debug).each do |x|
       define_method x.to_sym do |message|

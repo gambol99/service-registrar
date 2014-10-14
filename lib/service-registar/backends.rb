@@ -20,6 +20,10 @@ module ServiceRegistar
       backends.include? name.to_sym
     end
 
+    def backend_config? name, configuration
+      ServiceRegistar::Backends.const_get( name.capitalize.to_sym ).valid? configuration
+    end
+
     private
     def load_backend name, configuration
       debug "backend: name: #{name}, configuration: #{configuration}"
