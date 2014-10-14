@@ -5,12 +5,12 @@
 #  vim:ts=2:sw=2:et
 #
 $:.unshift File.join(File.dirname(__FILE__),'.','./service-registar')
-require 'docker'
+require 'registar'
 
 module ServiceRegistar
   ROOT = File.expand_path( File.dirname( __FILE__ ) )
 
-  equire "#{ROOT}/service-registar/version"
+  require "#{ROOT}/service-registar/version"
 
   autoload :Version,  "#{ROOT}/service-registar/version"
   autoload :Utils,    "#{ROOT}/service-registar/utils"

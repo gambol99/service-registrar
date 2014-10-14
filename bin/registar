@@ -5,6 +5,7 @@
 #
 #  vim:ts=2:sw=2:et
 #
+$:.unshift File.join(File.dirname(__FILE__),'.','../lib')
 require 'rubygems' if RUBY_VERSION < '1.9.0'
 require 'service-registar'
 require 'optionscrapper'
@@ -13,24 +14,33 @@ module ServiceRegistar
   class Registrator
     def initialize
       begin
-
+        parser.parse!
+        send options[:command] if options[:command]
       rescue SystemExit => e
-
+        exit e.status
       rescue Exception => e
-
+        parser.usage e.message
       end
     end
 
     private
+    def run
+      ServiceRegistar.new options
+    end
 
-
+    def options
+      @options ||= {}
+    end
 
     def parser
       parser ||= OptionScrapper.new do |o|
-        o.on( '-c CONFIG', '--config CONFIG', 'the configuration file for the registration service' ) { |x| options[:config] = x }
-        o.on( '-v', '--verbose', 'switch into verbose logging mode' ) { |x| options[:verbose] = true }
-
-
+        o.on( '-c CONFIG', '--config CONFIG', 'the configuration file for the registration service' ) { |x| options['config'] = x }
+        o.on( '-v', '--verbose', 'switch into verbose logging mode' ) { |x| options['verbose'] = true }
+        o.command :run, 'start daemon service and push services to the backend' do
+          o.on( '-i INTERVAL', '--interval INTERVAL', 'specify the interval between pushing services' ) { |x| options['interval'] = x.to_i }
+          o.on( '-B BACKEND', '--backend BACKEND', 'specify the service discovery backend' ) { |x| options['backend'] = x }
+          o.on_command { options[:command] = :run }
+        end
       end
     end
   end

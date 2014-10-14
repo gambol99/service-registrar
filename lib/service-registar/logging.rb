@@ -8,25 +8,26 @@ require 'logger'
 
 module ServiceRegistar
   module Logging
-    Logger.init settings[:loglevel] if settings[:verbose]
+    class Logger
+      class << self
+        attr_accessor :logger
+
+        def init loglevel = :INFO
+          self.logger = ::Logger.new(STDOUT)
+          self.logger.level = loglevel
+        end
+
+        def method_missing(m,*args,&block)
+          logger.send m, *args, &block if logger.respond_to? m
+        end
+      end
+    end
+
+    Logger.init
 
     %w(info warn error debug).each do |x|
       define_method x.to_sym do |message|
         Logger.send x.to_sym,message
-      end
-    end
-
-    class Logger
-      class << self
-      attr_accessor :logger
-
-      def init loglevel
-        self.logger = ::Logger.new(STDOUT)
-        self.logger.level = loglevel
-      end
-
-      def method_missing(m,*args,&block)
-        logger.send m, *args, &block if logger.respond_to? m
       end
     end
   end

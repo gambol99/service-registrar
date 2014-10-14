@@ -4,6 +4,8 @@
 #
 #  vim:ts=2:sw=2:et
 #
+require 'logging'
+
 module ServiceRegistar
   class Backend
     include ServiceRegistar::Logging

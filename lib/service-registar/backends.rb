@@ -4,7 +4,7 @@
 #
 #  vim:ts=2:sw=2:et
 #
-require 'backends/backend'
+require 'backend'
 require 'backends/zookeeper'
 require 'backends/etcd'
 

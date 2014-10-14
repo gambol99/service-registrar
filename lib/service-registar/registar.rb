@@ -5,12 +5,13 @@
 #  vim:ts=2:sw=2:et
 #
 require 'backends'
+require 'logging'
 require 'docker-api'
 require 'thread'
+require 'config'
 
 module ServiceRegistar
   class Registar
-    include ServiceRegistar::Utils
     include ServiceRegistar::Logging
     include ServiceRegistar::Config
     include ServiceRegistar::Backends

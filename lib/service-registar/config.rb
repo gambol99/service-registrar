@@ -6,8 +6,8 @@
 #
 module ServiceRegistar
   module Configuration
-    class << self
-      def default_options
+    class Settings
+      def self.default_options
         {
           'docker'      => 'unix:///var/run/docker.sock',
           'interval'    => '5000',
@@ -24,8 +24,8 @@ module ServiceRegistar
         }
       end
 
-      def settings[key]
-        @settings[key]
+      def self.[]
+
       end
     end
 

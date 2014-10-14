@@ -32,7 +32,7 @@ module ServiceRegistar
         }
         options[:ca_file]  = config['ca_file'] if config['ca_file']
         options[:use_ssl]  = true if config['use_ssl']
-        options[:ssl_cert] = OpenSSL::X509::Certificate.new( File.read( config['ssl_cert'] ) if config['ssl_cert']
+        options[:ssl_cert] = OpenSSL::X509::Certificate.new( File.read( config['ssl_cert'] ) ) if config['ssl_cert']
         options[:ssl_key]  = OpenSSL::PKey::RSA.new(config['ssl_key']) if config['ssl_key']
         ::Etcd.client( options )
       end
