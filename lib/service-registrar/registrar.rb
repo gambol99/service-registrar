@@ -79,7 +79,7 @@ module ServiceRegistrar
         :domain     => config['Domainname'] || '',
         :entrypoint => config['Entrypoint'] || '',
         :volumes    => config['Volumes'] || {},
-        :state      => config['State']['Running'],
+        :running    => config['State']['Running'],
         :docker_pid => config['State']['Pid'] || 0,
         :ports      => config['NetworkSettings']['Ports'] || {}
       }
