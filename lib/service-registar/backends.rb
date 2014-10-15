@@ -13,14 +13,14 @@ module ServiceRegistar
     def backends
       ServiceRegistar::Backends.constants.select { |x|
         Class === ServiceRegistar::Backends.const_get( x )
-      }.delete_if { |x| x =~ /Backend/ }
+      }.delete_if { |x| x =~ /Backend/ }.map(&:downcase).map(&:to_s)
     end
 
     def backend? name
       backends.include? name.to_sym
     end
 
-    def backend_config? name, configuration
+    def backend_configuration name, configuration
       ServiceRegistar::Backends.const_get( name.capitalize.to_sym ).valid? configuration
     end
 

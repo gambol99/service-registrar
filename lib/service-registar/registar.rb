@@ -10,6 +10,7 @@ require 'config'
 require 'utils'
 require 'backends'
 require 'logging'
+require 'pp'
 
 module ServiceRegistar
   class Registar
@@ -17,20 +18,21 @@ module ServiceRegistar
     include ServiceRegistar::Configuration
     include ServiceRegistar::Logging
     include ServiceRegistar::Backends
-    include ServiceRegistar::Docker
+    include ServiceRegistar::DockerAPI
 
     def initialize config = {}
+      info "initialize: setting up the registar service"
       # step: load and validate the configuration
+      info "initialize: validating the service configuration"
       validate_configuration config
+      info "initialize: service registar successfully initialized"
+    end
+
+    def run
+      info "run: backend: #{settings['backend']}, interval: #{settings['interval']}"
+
     end
 
     private
-    def run
-      loop do
-
-
-
-      end
-    end
   end
 end

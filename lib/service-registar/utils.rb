@@ -6,14 +6,10 @@
 #
 module ServiceRegistar
   module Utils
-    def valid_file? filename
-      return false "the configuration: #{filename} does not exists" unless File.exists? filename
-      raise ArgumentError, "the configuration: #{filename} is not a file"   unless File.file? filename
-      raise ArgumentError, "the configuration: #{filename} is not readable" unless File.readable? filename
-    end
-
     def postive_integer? value
-      ( !value.is_a? Integer or value <= 0 ) ? false : true
+      return false unless value.is_a? Integer
+      return false if value <= 0
+      true
     end
 
     def required_settings list, supplied

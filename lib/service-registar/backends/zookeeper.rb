@@ -19,10 +19,8 @@ module ServiceRegistar
       end
 
       private
-
-      def self.valid? configuration
-        return false unless configuration['uri']
-        true
+      def self.validate configuration
+        raise ArgumentError, "you have not specified the zookeeper uri" unless configuration['uri']
       end
 
       def ensure_pathway path
