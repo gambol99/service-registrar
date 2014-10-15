@@ -11,7 +11,7 @@ module ServiceRegistar
         'docker'    => '/var/run/docker.sock',
         'daemonize' => false,
         'interval'  => 5000,
-        'ttl'       => 120000,
+        'ttl'       => 12000,
         'log'       => STDOUT,
         'loglevel'  => 'info',
         # example: /services/prod/<app_name>/<name>

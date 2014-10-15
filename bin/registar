@@ -25,7 +25,8 @@ module ServiceRegistar
 
     private
     def run
-      ServiceRegistar.new( options ).run
+      service = ServiceRegistar.new( options )
+      service.run
     end
 
     def options
