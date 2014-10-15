@@ -4,17 +4,19 @@
 #
 #  vim:ts=2:sw=2:et
 #
+require 'yaml'
+
 module ServiceRegistrar
   module Configuration
     def default_configuration
       {
-        'docker'    => '/var/run/docker.sock',
-        'daemonize' => false,
-        'interval'  => 5000,
-        'ttl'       => 12000,
-        'log'       => STDOUT,
-        'loglevel'  => 'info',
-        # example: /services/prod/<app_name>/<name>
+        'docker'       => '/var/run/docker.sock',
+        'daemonize'    => false,
+        'interval'     => 5000,
+        'ttl'          => 12000,
+        'log'          => STDOUT,
+        'loglevel'     => 'info',
+        'stats_prefix' => 'registrar-service',
         'path'     => [
           "string:services",
           "environment:ENVIRONMENT",
@@ -93,7 +95,7 @@ module ServiceRegistrar
     end
 
     def load_configuration filename
-      ( filename ) ? YAML.load(File.read(filename)) : {}
+      ( filename ) ? ::YAML.load(File.read(filename)) : {}
     end
   end
 end

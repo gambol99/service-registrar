@@ -4,21 +4,22 @@
 #
 #  vim:ts=2:sw=2:et
 #
-docker: unix:///var/run/docker.sock
-interval: 2000
-ttl: 15000
-log: /var/log/services.log
-loglevel: INFO
-backend:: zookeeper
+docker: /var/run/docker.sock
+interval: 5000
+ttl: 12000
+path:
+  - string:services
+  - environment:ENVIRONMENT
+  - environment:APP
+  - environment:NAME
+  - container:HOSTNAME
+statsd:
+  host: graphite1
+  port: 8125
+backend: etcd
 backends:
   zookeeper:
-    uri: 'zk://zoo1:2181,zoo2:2181'
-    path: /services
+    uri: zk://localhost:2181
   etcd:
-    host: etcd
-    port: 4003
-    path: /services
-
-statsd:
-  host: statds.domain.com
-  port: 8125
+    host: localhost
+    port: 49153

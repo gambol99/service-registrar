@@ -14,9 +14,9 @@ RUN sudo gem install -V docker docker-api etcd zookeeper optionscrapper
 ADD lib /opt/registrar/lib
 ADD bin /opt/registrar/bin
 ADD docker/config/config.yml /opt/registrar/config.yml
-ADD docker/config/registar.ini /etc/supervisord.d/registrar.ini
+ADD docker/config/registar.conf /etc/supervisor/conf.d/registrar.conf
 ENV APP registrar
 ENV ENVIRONMENT prod
 ENV NAME registrar-service
-VOLUME [ '/var/run/docker.sock:/var/run/docker.sock' ]
-CMD [ '/usr/bin/supervisor' ]
+VOLUME /var/run/docker.sock:/var/run/docker.sock
+CMD [ "/usr/bin/supervisord", "-n" ]

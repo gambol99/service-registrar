@@ -14,7 +14,6 @@ backend: etcd
 backends:
   zookeeper:
     uri: zk://localhost:2181
-    path: /services
   etcd:
-    host: localhost
-    port: 49153
+    host: discovery
+    port: 4001

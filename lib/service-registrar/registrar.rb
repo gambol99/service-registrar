@@ -40,9 +40,8 @@ module ServiceRegistrar
       loop do
         begin
           sleep_ms settings['interval']
-          measure_time 'registar.event.time.ms' do
+          measure_time 'processing.ms' do
             debug "run: starting a event run"
-            increment 'registar.events.iteration'
             containers do |container|
               # step: extract the path from the container
               path = service_path container
@@ -50,15 +49,16 @@ module ServiceRegistrar
               service = service_information container
               debug "path: #{path}, service: #{service}"
               # step: push the service into the backend
-              measure_time 'registar.backend.time.ms' do
+              measure_time 'backend.ms' do
                 backend.set path, service.to_json, to_seconds( settings['ttl'] )
               end
             end
             debug "run: going to sleep for #{settings['interval']}ms"
+            gauge 'alive'
           end
         rescue BackendFailure => e
           error "run: backend failure, error: #{e.message.chomp}"
-          increment 'registar.event.backend.failure'
+          increment 'backend.failures'
         rescue SystemExit => e
           info "run: received a SystemExit exception"
           exit 1
