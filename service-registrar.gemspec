@@ -4,17 +4,17 @@
 #
 #  vim:ts=2:sw=2:et
 #
-$:.unshift File.join(File.dirname(__FILE__),'.','lib/service-registar' )
+$:.unshift File.join(File.dirname(__FILE__),'.','lib/service-registrar' )
 require 'version'
 
 Gem::Specification.new do |s|
-  s.name        = "service-registar"
+  s.name        = "service-registrar"
   s.version     = GemMirror::VERSION
   s.platform    = Gem::Platform::RUBY
   s.date        = '2014-10-10'
   s.authors     = ["Rohith Jayawardene"]
   s.email       = 'gambol99@gmail.com'
-  s.homepage    = 'https://github.com/gambol99/service-registar'
+  s.homepage    = 'https://github.com/gambol99/service-registrar'
   s.summary     = %q{Docker Service Registration}
   s.description = %q{Probes the docker container and pushed to the services to a backend}
   s.license     = 'GPL'

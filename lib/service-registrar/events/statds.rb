@@ -6,7 +6,7 @@
 #
 require 'ruby-statsd'
 
-module ServiceRegistar
+module ServiceRegistrar
   module Events
     class Statsd
       attr_reader :config

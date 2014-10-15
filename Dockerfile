@@ -11,12 +11,12 @@ RUN sudo apt-get update
 RUN sudo apt-get install -y ruby1.9.3
 RUN sudo apt-get install -y patch make supervisor
 RUN sudo gem install -V docker docker-api etcd zookeeper optionscrapper
-ADD lib /opt/registar/lib
-ADD bin /opt/registar/bin
-ADD docker/config/config.yml /opt/registar/config.yml
-ADD docker/config/registar.ini /etc/supervisord.d/registar.ini
-ENV APP registar
+ADD lib /opt/registrar/lib
+ADD bin /opt/registrar/bin
+ADD docker/config/config.yml /opt/registrar/config.yml
+ADD docker/config/registar.ini /etc/supervisord.d/registrar.ini
+ENV APP registrar
 ENV ENVIRONMENT prod
-ENV NAME registar-service
+ENV NAME registrar-service
 VOLUME [ '/var/run/docker.sock:/var/run/docker.sock' ]
 CMD [ '/usr/bin/supervisor' ]

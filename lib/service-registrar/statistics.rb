@@ -4,7 +4,7 @@
 #
 #  vim:ts=2:sw=2:et
 #
-module ServiceRegistar
+module ServiceRegistrar
   module Statistics
     def statistics_runner
       info "statistics_runner: starting the statistics running thread"

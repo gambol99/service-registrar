@@ -8,12 +8,12 @@ require 'backend'
 require 'backends/zookeeper'
 require 'backends/etcd'
 
-module ServiceRegistar
+module ServiceRegistrar
   module Backends
     def backends
       debug "backends: pulling a list of the backends"
-      ServiceRegistar::Backends.constants.select { |x|
-        Class === ServiceRegistar::Backends.const_get( x )
+      ServiceRegistrar::Backends.constants.select { |x|
+        Class === ServiceRegistrar::Backends.const_get( x )
       }.delete_if { |x| x =~ /Backend/ }.map(&:downcase).map(&:to_s)
     end
 
@@ -24,14 +24,14 @@ module ServiceRegistar
 
     def backend_configuration name, configuration
       debug "backend_configuration: validating the configuration is correct"
-      ServiceRegistar::Backends.const_get( name.capitalize.to_sym ).valid? configuration
+      ServiceRegistrar::Backends.const_get( name.capitalize.to_sym ).valid? configuration
     end
 
     private
     def load_backend name, configuration
       debug "load_backend: name: #{name}, configuration: #{configuration}"
       raise ArgumentError, "the backend: #{name} is not supported" unless backend? name
-      ServiceRegistar::Backends.const_get( name.capitalize.to_sym ).new( configuration )
+      ServiceRegistrar::Backends.const_get( name.capitalize.to_sym ).new( configuration )
     end
 
     class BackendFailure < StandardError; end

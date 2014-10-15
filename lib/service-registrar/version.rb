@@ -4,6 +4,6 @@
 #
 #  vim:ts=2:sw=2:et
 #
-module ServiceRegistar
+module ServiceRegistrar
   VERSION = '0.0.1'
 end

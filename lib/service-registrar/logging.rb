@@ -6,7 +6,7 @@
 #
 require 'logger'
 
-module ServiceRegistar
+module ServiceRegistrar
   module Logging
     class Logger
       class << self
@@ -25,7 +25,7 @@ module ServiceRegistar
 
     %w(info warn error debug).each do |x|
       define_method x.to_sym do |message|
-        ServiceRegistar::Logging::Logger.send x.to_sym,message
+        ServiceRegistrar::Logging::Logger.send x.to_sym,message
       end
     end
   end

@@ -13,14 +13,14 @@ require 'logging'
 require 'statistics'
 require 'pp'
 
-module ServiceRegistar
-  class Registar
-    include ServiceRegistar::Logging
-    include ServiceRegistar::Utils
-    include ServiceRegistar::Configuration
-    include ServiceRegistar::Backends
-    include ServiceRegistar::DockerAPI
-    include ServiceRegistar::Statistics
+module ServiceRegistrar
+  class Registrar
+    include ServiceRegistrar::Logging
+    include ServiceRegistrar::Utils
+    include ServiceRegistrar::Configuration
+    include ServiceRegistrar::Backends
+    include ServiceRegistrar::DockerAPI
+    include ServiceRegistrar::Statistics
 
     def initialize config = {}
       # step: load the configuration

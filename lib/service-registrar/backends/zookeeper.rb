@@ -4,7 +4,7 @@
 #
 #  vim:ts=2:sw=2:et
 #
-module ServiceRegistar
+module ServiceRegistrar
   module Backends
     class Zookeeper < Backend
       require 'zookeeper'

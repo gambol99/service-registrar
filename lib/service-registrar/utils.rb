@@ -6,7 +6,7 @@
 #
 require 'logger'
 
-module ServiceRegistar
+module ServiceRegistrar
   module Utils
     LogLevels = {
       'info'  => ::Logger::INFO,

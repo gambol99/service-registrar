@@ -7,7 +7,7 @@
 gem 'docker-api', :require => 'docker'
 require 'docker'
 
-module ServiceRegistar
+module ServiceRegistrar
   module DockerAPI
     def containers &block
       raise ArgumentError, 'you have not specified a block' unless block_given?

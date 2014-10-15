@@ -6,9 +6,9 @@
 #
 require 'logging'
 
-module ServiceRegistar
+module ServiceRegistrar
   class Backend
-    include ServiceRegistar::Logging
+    include ServiceRegistrar::Logging
     attr_reader :config
     def initialize config
       @config = config
