@@ -7,7 +7,7 @@
 source 'https://rubygems.org'
 #gem "service-registrar", :git => 'https://github.com/gambol99/service-registrar'
 gem 'zookeeper'
-gem 'etcd-rb'
+gem 'etcd'
 gem 'optionscrapper'
 gem 'statsd-ruby'
 gem 'docker'
