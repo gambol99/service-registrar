@@ -11,7 +11,6 @@ require 'utils'
 require 'backends'
 require 'logging'
 require 'statistics'
-require 'pp'
 
 module ServiceRegistrar
   class Registrar

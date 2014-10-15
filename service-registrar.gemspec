@@ -9,7 +9,7 @@ require 'version'
 
 Gem::Specification.new do |s|
   s.name        = "service-registrar"
-  s.version     = GemMirror::VERSION
+  s.version     = ServiceRegistrar::VERSION
   s.platform    = Gem::Platform::RUBY
   s.date        = '2014-10-10'
   s.authors     = ["Rohith Jayawardene"]
