@@ -11,7 +11,7 @@ module ServiceRegistrar
 
       def set path, value, ttl = 0
         begin
-          etcd.set path, value: value, recursive: true, ttl: ttl
+          etcd.set path, value, recursive: true, ttl: ttl
         rescue Exception => e
           raise BackendFailure, e.message
         end
@@ -30,16 +30,7 @@ module ServiceRegistrar
 
       def connection
         info "connection: attempting to make a connection to etcd backend service:"
-        options = {
-          :host => config['host'],
-          :port => config['port'],
-        }
-        debug "connection: host: #{config['host']}, port: #{config['port']}"
-        options[:ca_file]  = config['ca_file'] if config['ca_file']
-        options[:use_ssl]  = true if config['use_ssl']
-        options[:ssl_cert] = OpenSSL::X509::Certificate.new( File.read( config['ssl_cert'] ) ) if config['ssl_cert']
-        options[:ssl_key]  = OpenSSL::PKey::RSA.new(config['ssl_key']) if config['ssl_key']
-        ::Etcd.client( options )
+        ::Etcd::Client.connect( uris: config['uri'] )
       end
     end
   end
