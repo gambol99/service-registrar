@@ -35,13 +35,14 @@ module ServiceRegistar
     def parser
       parser ||= OptionScrapper.new do |o|
         o.on( '-c CONFIG', '--config CONFIG', 'the configuration file for the registration service' ) { |x| options['config'] = x }
-        o.on( '-v', '--verbose', 'switch into verbose logging mode' ) { |x| options['verbose'] = true }
+        o.on( '-d', '--debug', 'switch on debug logging') { options['loglevel'] = 'debug' }
         o.command :run, 'start daemon service and push services to the backend' do
           o.on( '-i MS', '--interval MS', 'specify the interval between pushing services' ) { |x| options['interval'] = x.to_i }
-          o.on( '-B BACKEND', '--backend BACKEND', 'specify the service discovery backend' ) { |x| options['backend'] = x }
           o.on( '-l FILE', '--log FILE', 'the path for the log file to use' ) { |x| options['log'] = x }
           o.on( '-t MS', '--ttl MS', 'the time to live for services in service discovery, in ms') { |x| options['ttl'] = x.to_i }
-          o.on( '-D FILE', '--docker FILE', 'the location of the docker socket file' ) { |x| options['docker'] = x }
+          o.on( '-D', '--daemonize', 'daemonize the service into the background') { options['daemonize'] = true }
+          o.on( '-B BACKEND', '--backend BACKEND', 'specify the service discovery backend' ) { |x| options['backend'] = x }
+          o.on( '-d FILE', '--docker FILE', 'the location of the docker socket file' ) { |x| options['docker'] = x }
           o.on_command { options[:command] = :run }
         end
       end

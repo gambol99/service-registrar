@@ -8,25 +8,29 @@ module ServiceRegistar
   module Configuration
     def default_configuration
       {
-        'docker'   => '/var/run/docker.sock',
-        'interval' => 5000,
-        'ttl'      => 12000,
-        'log'      => STDOUT,
-        'loglevel' => 'debug',
+        'docker'    => '/var/run/docker.sock',
+        'daemonize' => false,
+        'interval'  => 5000,
+        'ttl'       => 120000,
+        'log'       => STDOUT,
+        'loglevel'  => 'info',
         # example: /services/prod/<app_name>/<name>
-        'path'     => {
-          'content' => [
-            "string:services".
-            "environment:ENVIRONMENT",
-            "environment:APP",
-            "environment:NAME",
-          ]
-        },
-        'backend'  => 'zookeeper',
+        'path'     => [
+          "string:services",
+          "environment:ENVIRONMENT",
+          "environment:APP",
+          "environment:NAME",
+          "container:HOSTNAME",
+        ],
+        'backend'  => 'etcd',
         'backends' => {
           'zookeeper' => {
             'uri'   => 'zk://localhost:2181',
             'path'  => '/services',
+          },
+          'etcd' => {
+            'host'  => 'localhost',
+            'port'  => 49153
           }
         }
       }.dup

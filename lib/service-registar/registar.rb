@@ -10,6 +10,7 @@ require 'config'
 require 'utils'
 require 'backends'
 require 'logging'
+require 'statistics'
 require 'pp'
 
 module ServiceRegistar
@@ -19,6 +20,7 @@ module ServiceRegistar
     include ServiceRegistar::Configuration
     include ServiceRegistar::Backends
     include ServiceRegistar::DockerAPI
+    include ServiceRegistar::Statistics
 
     def initialize config = {}
       # step: load the configuration
@@ -33,30 +35,86 @@ module ServiceRegistar
       backend_cfg = settings['backends'][settings['backend']]
       backend = load_backend settings['backend'], backend_cfg
       debug "run: backend provider: #{backend.inspect}"
+      # step: run the statistics dumper
+      statistics_runner
       loop do
-        # step:
         begin
-          debug "run: starting a event run"
-          containers do |container|
-            # step: extract the path from the container
-
-
-            # step: extract the required information from container
-
-            # step: push the service into the backend
-
-            # step: update any statistics
-
-          end
-          debug "run: going to sleep for #{settings['interval']}ms"
           sleep_ms settings['interval']
+          measure_time 'registar.event.time.ms' do
+            debug "run: starting a event run"
+            increment 'registar.events.iteration'
+            containers do |container|
+              # step: extract the path from the container
+              path = service_path container
+              # step: extract the required information from container
+              service = service_information container
+              debug "path: #{path}, service: #{service}"
+              # step: push the service into the backend
+              measure_time 'registar.backend.time.ms' do
+                backend.set path, service.to_json, to_seconds( settings['ttl'] )
+              end
+            end
+            debug "run: going to sleep for #{settings['interval']}ms"
+          end
+        rescue BackendFailure => e
+          error "run: backend failure, error: #{e.message.chomp}"
+          increment 'registar.event.backend.failure'
         rescue SystemExit => e
-          error "run: received a SystemExit exception"
+          info "run: received a SystemExit exception"
+          exit 1
         rescue SignalException => e
           error "run: received a SignalException exception, #{e.message}"
           exit 1
         end
       end
     end
+
+    private
+    def service_information docker
+      config    = docker.info
+      service = {
+        :id         => docker.id,
+        :updated    => Time.now.to_i,
+        :image      => config['Image'],
+        :domain     => config['Domainname'] || '',
+        :entrypoint => config['Entrypoint'] || '',
+        :volumes    => config['Volumes'] || {},
+        :state      => config['State']['Running'],
+        :docker_pid => config['State']['Pid'] || 0,
+        :ports      => config['NetworkSettings']['Ports'] || {}
+      }
+      service
+    end
+
+    def service_path docker
+      # step: get the path elements
+      path_elements = settings['path']
+      # step: get the docker environment variables
+      environment   = docker_environment docker
+      # step: the docker information
+      docker_info   = docker_config docker
+      # step: generate the path from the elements
+      path = path_elements.inject([]) { |paths,x|
+        value = nil
+        # step: ignore any illigal formated
+        unless x =~ /^\w+:\w+$/
+          error "service_path: element: #{x} is invalid, skipping the element"
+          next
+        end
+        elements = x.split(':')
+        element_type  = elements[0]
+        element_value = elements[1]
+        case element_type
+        when 'environment'
+          paths << environment[element_value] || 'unknown'
+        when 'string'
+          paths << element_value
+        when 'container'
+          paths << docker_info[element_value.downcase.capitalize]
+        end
+      }.compact
+      "/" << path.join('/')
+    end
+
   end
 end

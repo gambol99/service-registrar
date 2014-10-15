@@ -33,5 +33,7 @@ module ServiceRegistar
       raise ArgumentError, "the backend: #{name} is not supported" unless backend? name
       ServiceRegistar::Backends.const_get( name.capitalize.to_sym ).new( configuration )
     end
+
+    class BackendFailure < StandardError; end
   end
 end

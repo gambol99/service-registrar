@@ -13,6 +13,20 @@ module ServiceRegistar
       'debug' => ::Logger::DEBUG,
     }
 
+    def split_array list, symbol = '='
+      list.inject({}) do |map,element|
+        elements = element.split symbol
+        if elements.size > 0
+          map[elements.first] = elements.last
+        end
+        map
+      end
+    end
+
+    def to_seconds milli
+      milli / 1000
+    end
+
     def sleep_ms time
       sleep ( time * 0.001 )
     end
