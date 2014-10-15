@@ -74,6 +74,7 @@ module ServiceRegistrar
       service = {
         :id         => docker.id,
         :updated    => Time.now.to_i,
+        :host       => hostname,
         :image      => config['Image'],
         :domain     => config['Domainname'] || '',
         :entrypoint => config['Entrypoint'] || '',
@@ -113,6 +114,10 @@ module ServiceRegistrar
         end
       }.compact
       "/" << path.join('/')
+    end
+
+    def hostname
+      @hostname ||= %x(hostname -f).chomp
     end
 
   end

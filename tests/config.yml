@@ -13,9 +13,6 @@ path:
   - environment:APP
   - environment:NAME
   - container:HOSTNAME
-statsd:
-  host: graphite1
-  port: 8125
 backend: etcd
 backends:
   zookeeper:
