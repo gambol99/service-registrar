@@ -4,6 +4,7 @@
 #
 #  vim:ts=2:sw=2:et
 #
+gem 'docker-api', :require => 'docker'
 require 'docker'
 
 module ServiceRegistar

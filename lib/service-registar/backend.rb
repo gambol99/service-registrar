@@ -15,7 +15,7 @@ module ServiceRegistar
     end
 
     def self.valid? configuration
-      false
+      raise ArgumentError, "valid? the backend method has not been overloaded"
     end
   end
 end

@@ -11,8 +11,17 @@ module ServiceRegistar
         'docker'   => '/var/run/docker.sock',
         'interval' => 5000,
         'ttl'      => 12000,
-        'log'      => '/var/log/registar.log',
-        'loglevel' => 'INFO',
+        'log'      => STDOUT,
+        'loglevel' => 'debug',
+        # example: /services/prod/<app_name>/<name>
+        'path'     => {
+          'content' => [
+            "string:services".
+            "environment:ENVIRONMENT",
+            "environment:APP",
+            "environment:NAME",
+          ]
+        },
         'backend'  => 'zookeeper',
         'backends' => {
           'zookeeper' => {
@@ -29,13 +38,14 @@ module ServiceRegistar
 
     private
     def validate_configuration config
-      debug "validate_configuration: loading the configuration"
       # step: start by loading the default configuration
       @configuration = default_configuration
       # step: load the configuration file if we have one
       @configuration.merge!(load_configuration config['config'])
       # step: merge the user defined options
       @configuration.merge!(config)
+      # step: setup the logger
+      Logging::Logger::init @configuration['log'], loglevel( @configuration['loglevel'] )
       # checkpoint: we should have a fully merged config now
       debug "validate_configuration: merged configuration: #{@configuration}"
       # step: verfiy the config is correct
@@ -44,14 +54,14 @@ module ServiceRegistar
       raise ArgumentError, "interval should be a positive integer" unless postive_integer? @configuration['interval']
       raise ArgumentError, "ttl should be positive integer"        unless postive_integer? @configuration['ttl']
       # step: check the backend configuration
-      validate_backend_configuration @configuration
+      validate_backend @configuration
       # step: check the docker socket
       validate_docker @configuration
       # step: return the configuration
       @configuration
     end
 
-    def validate_backend_configuration configuration
+    def validate_backend configuration
       debug "validate_backend_configuration: checking the backend configuration"
       backend = configuration['backend']
       info "validate_backend_configuration: backend selected: #{backend}"
@@ -74,8 +84,8 @@ module ServiceRegistar
       socket = config['docker']
       raise ArgumentError, "the docker socket: #{socket} does not exist"    unless File.exists? socket
       raise ArgumentError, "the docker socket: #{socket} is not a socket"   unless File.socket? socket
-      #raise ArgumentError, "the docker socket: #{socket} is not readable"   unless File.readable? socket
-      #raise ArgumentError, "the docker socket: #{socket} is not writeable"  unless File.writeable? socket
+      raise ArgumentError, "the docker socket: #{socket} is not readable"   unless File.readable? socket
+      raise ArgumentError, "the docker socket: #{socket} is not writable"  unless File.writable? socket
     end
 
     def load_configuration filename

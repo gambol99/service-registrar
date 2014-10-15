@@ -12,8 +12,8 @@ module ServiceRegistar
       class << self
         attr_accessor :logger
 
-        def init loglevel = ::Logger::DEBUG
-          self.logger = ::Logger.new(STDOUT)
+        def init log, loglevel = ::Logger::DEBUG
+          self.logger = ::Logger.new( log )
           self.logger.level = loglevel
         end
 
@@ -23,11 +23,9 @@ module ServiceRegistar
       end
     end
 
-    Logger.init
-
     %w(info warn error debug).each do |x|
       define_method x.to_sym do |message|
-        Logger.send x.to_sym,message
+        ServiceRegistar::Logging::Logger.send x.to_sym,message
       end
     end
   end

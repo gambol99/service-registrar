@@ -4,12 +4,27 @@
 #
 #  vim:ts=2:sw=2:et
 #
+require 'logger'
+
 module ServiceRegistar
   module Utils
+    LogLevels = {
+      'info'  => ::Logger::INFO,
+      'debug' => ::Logger::DEBUG,
+    }
+
+    def sleep_ms time
+      sleep ( time * 0.001 )
+    end
+
     def postive_integer? value
       return false unless value.is_a? Integer
       return false if value <= 0
       true
+    end
+
+    def loglevel level
+      LogLevels[level] || ::Logger::DEBUG
     end
 
     def required_settings list, supplied

@@ -19,8 +19,8 @@ module ServiceRegistar
       end
 
       private
-      def self.validate configuration
-        raise ArgumentError, "you have not specified the zookeeper uri" unless configuration['uri']
+      def self.valid? configuration
+        raise ArgumentError, "you have not specified the zookeeper uri: #{configuration}" unless configuration['uri']
       end
 
       def ensure_pathway path
@@ -34,6 +34,7 @@ module ServiceRegistar
       end
 
       def zookeeper
+        debug "heloo from zookeeper"
         @zookeeper ||= nil
         @zookeeper = connection if @zookeeper.nil? or !@zookeeper.connected?
       end
