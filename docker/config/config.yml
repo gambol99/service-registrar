@@ -1,0 +1,20 @@
+docker: /var/run/docker.sock
+daemonize: false
+interval: 5000
+ttl: 12000
+log: STDOUT
+loglevel: info
+path:
+- string:services
+- environment:ENVIRONMENT
+- environment:APP
+- environment:NAME
+- container:HOSTNAME
+backend: etcd
+backends:
+  zookeeper:
+    uri: zk://localhost:2181
+    path: /services
+  etcd:
+    host: localhost
+    port: 49153
