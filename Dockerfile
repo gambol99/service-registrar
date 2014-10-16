@@ -4,7 +4,7 @@
 #
 #  vim:ts=2:sw=2:et
 #
-FROM ubuntu
+FROM rastasheep/ubuntu-sshd:14.04
 MAINTAINER <gambol99@gmail.com>
 
 RUN sudo apt-get update
