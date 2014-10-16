@@ -19,6 +19,4 @@ ENV APP registrar
 ENV ENVIRONMENT prod
 ENV NAME registrar-service
 VOLUME /var/run/docker.sock:/var/run/docker.sock
-VOLUME /var/log/registrar:/var/log/registrar
-CMD [ "/usr/bin/ruby", "/opt/registrar/bin/registrar", "-d", "run", "-l", "/var/log/registrar" ]
-#CMD [ "/usr/bin/supervisord", "-n" ]
+CMD [ "/usr/bin/supervisord", "-n" ]
