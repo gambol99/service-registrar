@@ -10,31 +10,34 @@ module ServiceRegistrar
   module Configuration
     def default_configuration
       {
-        'docker'       => '/var/run/docker.sock',
-        'daemonize'    => false,
-        'interval'     => 5000,
-        'ttl'          => 12000,
-        'log'          => STDOUT,
-        'loglevel'     => 'info',
-        'stats_prefix' => 'registrar-service',
+        'docker'       => env('DOCKER_SOCKER','/var/run/docker.sock'),
+        'interval'     => env('INTERVAL','5000').to_i,
+        'ttl'          => env('TTL','12000').to_i,
+        'log'          => env('LOGFILE',STDOUT),
+        'loglevel'     => env('LOGLEVEL','info'),
+        'stats_prefix' => env('STATS_PREFIX','registrar-service'),
         'path'     => [
           "string:services",
           "environment:ENVIRONMENT",
-          "environment:APP",
           "environment:NAME",
+          "environment:APP",
           "container:HOSTNAME",
         ],
-        'backend'  => 'etcd',
+        'backend'  => env('BACKEND','etcd'),
         'backends' => {
           'zookeeper' => {
-            'uri'   => ENV['ZOOKEEPER_HOST'] || 'localhost:2181',
+            'uri'   => env('ZOOKEEPER_URI','localhost:2181'),
           },
           'etcd' => {
-            'host'  => ENV['ETCD_HOSTNAME'] || 'localhost',
-            'port'  => ENV['ETCD_PORT'] || 4001
+            'host'  => env('ETCD_HOST','localhost'),
+            'port'  => env('ETCD_PORT','4001').to_i
           }
         }
-      }.dup
+      }
+    end
+
+    def env key, default
+      ( ENV[key] ) ? ENV[key] : default
     end
 
     def settings

@@ -1,4 +1,4 @@
-service-registrar
+Service-Registrar
 =================
 
 Docker Service Registration
