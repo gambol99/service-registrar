@@ -27,12 +27,11 @@ module ServiceRegistrar
         'backend'  => 'etcd',
         'backends' => {
           'zookeeper' => {
-            'uri'   => 'zk://localhost:2181',
-            'path'  => '/services',
+            'uri'   => ENV['ZOOKEEPER_HOST'] || 'localhost:2181',
           },
           'etcd' => {
-            'host'  => 'localhost',
-            'port'  => 4001
+            'host'  => ENV['ETCD_HOSTNAME'] || 'localhost',
+            'port'  => ENV['ETCD_PORT'] || 4001
           }
         }
       }.dup
