@@ -32,7 +32,7 @@ module ServiceRegistrar
           },
           'etcd' => {
             'host'  => 'localhost',
-            'port'  => 49153
+            'port'  => 4001
           }
         }
       }.dup
