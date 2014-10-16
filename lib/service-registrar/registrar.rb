@@ -75,6 +75,7 @@ module ServiceRegistrar
         :id         => docker.id,
         :updated    => Time.now.to_i,
         :host       => hostname,
+        :ipaddress  => advertised,
         :image      => config['Image'],
         :domain     => config['Domainname'] || '',
         :entrypoint => config['Entrypoint'] || '',
@@ -120,5 +121,8 @@ module ServiceRegistrar
       @hostname ||= %x(hostname -f).chomp
     end
 
+    def advertised
+      @advertised ||= settings['advertised']
+    end
   end
 end
