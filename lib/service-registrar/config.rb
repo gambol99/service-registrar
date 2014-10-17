@@ -10,17 +10,21 @@ module ServiceRegistrar
   module Configuration
     def default_configuration
       {
-        'docker'       => env('DOCKER_SOCKET','/var/run/docker.sock'),
-        'interval'     => env('INTERVAL','5000').to_i,
-        'ttl'          => env('TTL','12000').to_i,
-        'log'          => env('LOGFILE',STDOUT),
-        'loglevel'     => env('LOGLEVEL','info'),
-        'stats_prefix' => env('STATS_PREFIX','registrar-service'),
+        'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
+        'interval'        => env('INTERVAL','5000').to_i,
+        'ttl'             => env('TTL','12000').to_i,
+        'log'             => env('LOGFILE',STDOUT),
+        'loglevel'        => env('LOGLEVEL','info'),
+        'hostname'        => env('HOSTNAME', %x(hostname -f).chomp ),
+        'stats_prefix'    => env('STATS_PREFIX','registrar-service'),
+        'services_prefix' => '/services',
+        'hosts_prefix'    => '/hosts',
+        'service_ttl'     => 'ttl', # ttl
         'path'     => [
-          "string:services",
           "environment:ENVIRONMENT",
           "environment:NAME",
           "environment:APP",
+          "provider:HOSTNAME",
           "container:HOSTNAME",
         ],
         'backend'  => env('BACKEND','etcd'),

@@ -10,6 +10,7 @@ require 'config'
 require 'utils'
 require 'backends'
 require 'logging'
+require 'service'
 require 'statistics'
 
 module ServiceRegistrar
@@ -20,6 +21,7 @@ module ServiceRegistrar
     include ServiceRegistrar::Backends
     include ServiceRegistrar::DockerAPI
     include ServiceRegistrar::Statistics
+    include ServiceRegistrar::Service
 
     def initialize config = {}
       # step: load the configuration
@@ -41,16 +43,25 @@ module ServiceRegistrar
           sleep_ms settings['interval']
           measure_time 'processing.ms' do
             debug "run: starting a event run"
+            host_services = {
+              :ipaddress => settings['hostname'],
+              :services  => []
+            }
+            # step: generate the services
             containers do |container|
-              # step: extract the path from the container
-              path = service_path container
-              # step: extract the required information from container
-              service = service_information container
-              debug "path: #{path}, service: #{service}"
-              # step: push the service into the backend
-              measure_time 'backend.ms' do
-                backend.set path, service.to_json, to_seconds( settings['ttl'] )
+              generate_service_document container do |path,document|
+                host_services[:services] << path
+                debug "path: #{path}, document: #{document}"
+                # step: push the document into the backend
+                measure_time 'services.set.ms' do
+                  backend.set path, document.to_json, service_time_to_live
+                end
               end
+            end
+            # step: push the hosts / services /host/[HOSTNAME]/services
+            measure_time 'hosts.set.ms' do
+              debug "host path: #{host_services_path}, services: #{host_services}"
+              backend.set host_services_path, host_services.to_json
             end
             debug "run: going to sleep for #{settings['interval']}ms"
             gauge 'alive'
@@ -69,60 +80,8 @@ module ServiceRegistrar
     end
 
     private
-    def service_information docker
-      config    = docker.info
-      service = {
-        :id         => docker.id,
-        :updated    => Time.now.to_i,
-        :host       => hostname,
-        :ipaddress  => advertised,
-        :image      => config['Image'],
-        :domain     => config['Domainname'] || '',
-        :entrypoint => config['Entrypoint'] || '',
-        :volumes    => config['Volumes'] || {},
-        :running    => config['State']['Running'],
-        :docker_pid => config['State']['Pid'] || 0,
-        :ports      => config['NetworkSettings']['Ports'] || {}
-      }
-      service
-    end
-
-    def service_path docker
-      # step: get the path elements
-      path_elements = settings['path']
-      # step: get the docker environment variables
-      environment   = docker_environment docker
-      # step: the docker information
-      docker_info   = docker_config docker
-      # step: generate the path from the elements
-      path = path_elements.inject([]) { |paths,x|
-        value = nil
-        # step: ignore any illigal formated
-        unless x =~ /^\w+:\w+$/
-          error "service_path: element: #{x} is invalid, skipping the element"
-          next
-        end
-        elements = x.split(':')
-        element_type  = elements[0]
-        element_value = elements[1]
-        case element_type
-        when 'environment'
-          paths << environment[element_value] || 'unknown'
-        when 'string'
-          paths << element_value
-        when 'container'
-          paths << docker_info[element_value.downcase.capitalize]
-        end
-      }.compact
-      "/" << path.join('/')
-    end
-
-    def hostname
-      @hostname ||= %x(hostname -f).chomp
-    end
-
-    def advertised
-      @advertised ||= settings['advertised']
+    def pruning?
+      settings['service_ttl'] == 'prune'
     end
   end
 end
