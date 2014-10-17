@@ -10,7 +10,7 @@ module ServiceRegistrar
   module Configuration
     def default_configuration
       {
-        'docker'       => env('DOCKER_SOCKER','/var/run/docker.sock'),
+        'docker'       => env('DOCKER_SOCKET','/var/run/docker.sock'),
         'interval'     => env('INTERVAL','5000').to_i,
         'ttl'          => env('TTL','12000').to_i,
         'log'          => env('LOGFILE',STDOUT),
