@@ -10,9 +10,21 @@ require 'docker'
 module ServiceRegistrar
   module DockerAPI
     def containers &block
+      # step: ensure the docker socket
+      set_docker_socket
       raise ArgumentError, 'you have not specified a block' unless block_given?
       ::Docker::Container.all.each do |docker|
         yield ::Docker::Container.get( docker.id )
+      end
+    end
+
+    def set_docker_socket
+      @socket ||= nil
+      unless @socket
+        @socket = "unix://#{settings['docker']}"
+        info "set_docker_socket: setting the docker socket: #{@socket}"
+        ::Docker.url = @socket
+        info "set_docker_socket: socket set"
       end
     end
 
