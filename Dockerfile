@@ -18,4 +18,4 @@ ADD docker/config/registar.conf /etc/supervisor/conf.d/registrar.conf
 ENV APP registrar
 ENV ENVIRONMENT prod
 ENV NAME registrar-service
-CMD [ "/usr/bin/supervisord", "-n" ]
+CMD [ "/usr/bin/ruby", "/opt/registrar/bin/registrar", "run" ]
