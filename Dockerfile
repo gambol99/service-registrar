@@ -18,5 +18,4 @@ ADD docker/config/registar.conf /etc/supervisor/conf.d/registrar.conf
 ENV APP registrar
 ENV ENVIRONMENT prod
 ENV NAME registrar-service
-VOLUME /var/run/docker.sock:/var/run/docker.sock
 CMD [ "/usr/bin/supervisord", "-n" ]
