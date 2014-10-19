@@ -64,11 +64,36 @@ Docker Build & Run
         -e DOCKER_SOCKET=/var/sockets/docker.socket \
         -v /var/run:/var/sockets service-registrar
 
+Docker Testing
+------------------
+
+	# DOCKER_ID=$(docker run -d -e APP=etcd -e NAME=backend -P -e ENVIRONMENT=prod etcd)
+	# ETCD_PORT=$(docker port $DOCKER_ID 4001 | cut -d':' -f2)
+	# ETCD_HOST=$(hostname --ip-address)
+	# IPADDRESS=$ETCD_HOST
+	# export HOSTNAME="test101"
+	# docker run -d -P \
+        -e ETCD_HOST=$ETCD_HOST \
+        -e ETCD_PORT=$ETCD_PORT \ 
+        -e HOSTNAME=$HOSTNAME \
+        -e IPADDRESS=$IPADDRESS \
+        -e DOCKER_SOCKET=/var/sockets/docker.socket \
+        -v /var/run:/var/sockets service-registrar
+
+	# watch the keys
+	# watch -d -n1 "./etcdclt --peers $IPADDRESS:$ETCD_PORT --no-sync ls --recursive"
+
+	# create some dockers
+	# docker run -d -e APP=redis -e NAME=master -P -e ENVIRONMENT=prod redis
+	# docker run -d -e APP=redis -e NAME=slave -P -e ENVIRONMENT=prod redis
+	# docker run -d -e APP=redis -e NAME=slave -P -e ENVIRONMENT=prod redis
+	
 
 Contributing
 ------------
 
- - Fork it Create your feature branch (git checkout -b my-new-feature)
+ - Fork it 
+ - Create your feature branch (git checkout -b my-new-feature)
  - Commit your changes (git commit -am 'Add some feature') 
  - Push to the branch (git push origin my-new-feature) 
  - Create new Pull Request 
