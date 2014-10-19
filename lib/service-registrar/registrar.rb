@@ -67,9 +67,6 @@ module ServiceRegistrar
               end
               # step: deduct what we have from what we have advertised
               bad_services = advertised_services.keys - available_services
-              puts "advertised_services: #{advertised_services.keys.sort}"
-              puts "available_services: #{available_services.sort}"
-              puts "bad_services: #{bad_services.sort}"
               # step: do we have any services that should't be there?
               if !bad_services.empty?
                 bad_services.each do |bad_service_path|
