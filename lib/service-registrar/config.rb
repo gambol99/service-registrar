@@ -16,6 +16,7 @@ module ServiceRegistrar
         'log'             => env('LOGFILE',STDOUT),
         'loglevel'        => env('LOGLEVEL','info'),
         'hostname'        => env('HOSTNAME', %x(hostname -f).chomp ),
+        'ipaddress'       => env('IPADDRESS', get_host_ipaddress ),
         'stats_prefix'    => env('STATS_PREFIX','registrar-service'),
         'services_prefix' => '/services',
         'hosts_prefix'    => '/hosts',
