@@ -77,7 +77,7 @@ Docker Testing
         -e ETCD_PORT=$ETCD_PORT \ 
         -e HOSTNAME=$HOSTNAME \
         -e IPADDRESS=$IPADDRESS \
-        -e DOCKER_SOCKET=/var/sockets/docker.socket \
+        -e DOCKER_SOCKET=/var/sockets/docker.sock \
         -v /var/run:/var/sockets service-registrar
 
 	# watch the keys
