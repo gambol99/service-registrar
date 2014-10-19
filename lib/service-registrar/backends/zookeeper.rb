@@ -10,12 +10,24 @@ module ServiceRegistrar
       require 'zookeeper'
 
       def set path, value, ttl = nil
-        # step: include the ttl in the object
-        value[:ttl] = ttl
-        # step: we need to make sure the path exists
-        ensure_pathway path
-        # step: set the value
-        zookeeper.set path: path, data: value
+        api_operation do
+          # step: include the ttl in the object
+          value[:ttl] = ttl
+          # step: we need to make sure the path exists
+          ensure_pathway path
+          # step: set the value
+          zookeeper.set path: path, data: value
+        end
+      end
+
+      def paths root_path = default_root_path
+
+      end
+
+      def delete path
+        api_operation do
+          zookeeper.delete path: path
+        end
       end
 
       private

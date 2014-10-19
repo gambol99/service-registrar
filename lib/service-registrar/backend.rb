@@ -17,5 +17,18 @@ module ServiceRegistrar
     def self.valid? configuration
       raise ArgumentError, "valid? the backend method has not been overloaded"
     end
+
+    protected
+    def api_operation &block
+      begin
+        yield
+      rescue Exception => e
+        raise BackendFailure e.message
+      end
+    end
+
+    def default_root_path
+      '/services'
+    end
   end
 end

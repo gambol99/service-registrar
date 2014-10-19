@@ -10,14 +10,44 @@ module ServiceRegistrar
       require 'etcd'
 
       def set path, value, ttl = 0
-        begin
-          etcd.set path, value: value, recursive: true, ttl: ttl
-        rescue Exception => e
-          raise BackendFailure, e.message
+        api_operation do
+          set_options = {
+            :value => value,
+            :recursive => true
+          }
+          set_options[:ttl] = ttl if ttl > 0
+          etcd.set path, set_options
+        end
+      end
+
+      def delete path
+        api_operation do
+          etcd.delete path, recursive: true
+        end
+      end
+
+      def paths root_path = default_root_path
+        api_operation do
+          paths_list recursive_nodes( root_path )
         end
       end
 
       private
+      def paths_list node, list = {}
+        if node.dir
+          node.children.each { |x| paths_list(x,list) } if node.children
+        else
+          list[node.key] = JSON.parse(node.value)['host']
+        end
+        list
+      end
+
+      def recursive_nodes root
+        api_operation do
+          etcd.get( root , :recursive => true ).node
+        end
+      end
+
       def self.valid? configuration
         return false unless configuration['host']
         return false unless configuration['port']

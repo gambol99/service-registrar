@@ -27,6 +27,5 @@ module ServiceRegistrar
         info "set_docker_socket: socket set"
       end
     end
-
   end
 end

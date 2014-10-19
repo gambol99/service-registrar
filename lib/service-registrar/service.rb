@@ -9,18 +9,36 @@ require 'pp'
 module ServiceRegistrar
   module Service
     private
-    def generate_service_document docker, &block
-      debug "generate_service_document: generating the service pack: docker: #{docker.id}"
+    def host_services_document services, &block
+      {
+        :hostname => hostname,
+        :services => services
+      }
+    end
+
+    def container_documents &block
+      containers do |container|
+        unless running?( container )
+          next unless settings['running_only']
+        end
+        service_document container do |path,document|
+          yield path, document if block_given?
+        end
+      end
+    end
+
+    def service_document docker, &block
       config      = extract_docker_config docker
       info        = extract_docker_info docker
       environment = extract_docker_environment docker
-      path = generate_service_path docker, environment
-      debug "generate_service_document: generating the service path: #{path}"
+      path = service_path docker, environment
+      debug "service_document: generating the service path: #{path}"
       #PP.pp info
       service = {
         :id          => docker.id,
         :updated     => Time.now.to_i,
-        :host        => settings['hostname'],
+        :host        => hostname,
+        :ipaddress   => host_ipaddress,
         :image       => config['Image'],
         :domain      => config['Domainname'] || '',
         :entrypoint  => config['Entrypoint'] || '',
@@ -37,9 +55,13 @@ module ServiceRegistrar
       yield path, service if block_given?
     end
 
-    def generate_service_path docker, environment
+    def running? docker
+      extract_docker_info(docker)['State']['Running']
+    end
+
+    def service_path docker, environment
       # step: generate the path from the elements
-      path = service_path.inject([]) { |paths,x|
+      path = backend_services_path.inject([]) { |paths,x|
         # step: ignore any illigal formated
         unless x =~ /^\w+:\w+$/
           error "service_path: element: #{x} is invalid, skipping the element"
@@ -59,23 +81,23 @@ module ServiceRegistrar
           paths << extract_provider_info( element_value )
         end
       }.compact
-      "/" << path.join('/')
+      "#{backend_services_prefix}/#{path.join('/')}"
     end
 
-    def service_path
+    def backend_services_path
       settings['path']
     end
 
-    def services_prefix
+    def backend_services_prefix
       settings['services_prefix']
     end
 
-    def hosts_prefix
+    def backend_hosts_prefix
       settings['hosts_prefix']
     end
 
-    def host_services_path
-      "#{hosts_prefix}/#{settings['hostname']}"
+    def backed_host_services_path
+      "#{backend_hosts_prefix}/#{hostname}"
     end
 
     def extract_docker_info docker
@@ -101,8 +123,18 @@ module ServiceRegistrar
     def extract_provider_info key
       case key
       when 'HOSTNAME'
-        settings['hostname']
+        hostname
+      when 'IPADDRESS'
+        host_ipaddress
       end
+    end
+
+    def hostname
+      settings['hostname']
+    end
+
+    def host_ipaddress
+      settings['ipaddress'] || get_host_ipaddress
     end
 
     def service_time_to_live

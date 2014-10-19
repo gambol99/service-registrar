@@ -41,6 +41,10 @@ module ServiceRegistrar
       LogLevels[level] || ::Logger::DEBUG
     end
 
+    def get_host_ipaddress
+      @host_ipaddress ||= %x(hostname --ip-address).chomp
+    end
+
     def required_settings list, supplied
       list.each do |x|
         raise ArgumentError, "you have not specified the #{x} options" unless supplied.has_key? x

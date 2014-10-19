@@ -19,12 +19,12 @@ module ServiceRegistrar
         'stats_prefix'    => env('STATS_PREFIX','registrar-service'),
         'services_prefix' => '/services',
         'hosts_prefix'    => '/hosts',
-        'service_ttl'     => 'ttl', # ttl
+        'running_only'    => true,
+        'service_ttl'     => 'prune', # ttl
         'path'     => [
           "environment:ENVIRONMENT",
           "environment:NAME",
           "environment:APP",
-          "provider:HOSTNAME",
           "container:HOSTNAME",
         ],
         'backend'  => env('BACKEND','etcd'),
@@ -48,6 +48,14 @@ module ServiceRegistrar
       @configuration ||= {}
     end
 
+    def interval
+      settings['interval']
+    end
+
+    def pruning?
+      settings['service_ttl'] == 'prune'
+    end
+
     private
     def validate_configuration config
       # step: start by loading the default configuration
@@ -61,10 +69,12 @@ module ServiceRegistrar
       # checkpoint: we should have a fully merged config now
       debug "validate_configuration: merged configuration: #{@configuration}"
       # step: verfiy the config is correct
-      required_settings %w(docker interval ttl log loglevel backend backends), @configuration
+      required_settings %w(docker interval ttl log loglevel backend backends service_ttl), @configuration
       # step: check the actual config
       raise ArgumentError, "interval should be a positive integer" unless postive_integer? @configuration['interval']
       raise ArgumentError, "ttl should be positive integer"        unless postive_integer? @configuration['ttl']
+      # step: check we have valid service method
+      raise ArgumentError, "invalid service ttl method" unless service_method? @configuration['service_ttl']
       # step: check the backend configuration
       validate_backend @configuration
       # step: check the docker socket
@@ -97,7 +107,11 @@ module ServiceRegistrar
       raise ArgumentError, "the docker socket: #{socket} does not exist"    unless File.exists? socket
       raise ArgumentError, "the docker socket: #{socket} is not a socket"   unless File.socket? socket
       raise ArgumentError, "the docker socket: #{socket} is not readable"   unless File.readable? socket
-      raise ArgumentError, "the docker socket: #{socket} is not writable"  unless File.writable? socket
+      raise ArgumentError, "the docker socket: #{socket} is not writable"   unless File.writable? socket
+    end
+
+    def service_method? method
+      method[/^(ttl|prune)$/]
     end
 
     def load_configuration filename

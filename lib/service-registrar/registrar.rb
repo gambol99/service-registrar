@@ -40,30 +40,45 @@ module ServiceRegistrar
       statistics_runner
       loop do
         begin
-          sleep_ms settings['interval']
+          sleep_ms interval
           measure_time 'processing.ms' do
-            debug "run: starting a event run"
-            host_services = {
-              :ipaddress => settings['hostname'],
-              :services  => []
-            }
+            available_services = []
             # step: generate the services
-            containers do |container|
-              generate_service_document container do |path,document|
-                host_services[:services] << path
-                debug "path: #{path}, document: #{document}"
-                # step: push the document into the backend
-                measure_time 'services.set.ms' do
-                  backend.set path, document.to_json, service_time_to_live
+            container_documents do |path,document|
+              available_services << path
+              debug "run: path: #{path}, ttl: #{service_time_to_live}, document: #{document}"
+              # step: push the document into the backend
+              measure_time 'services.set.ms' do
+                backend.set path, document.to_json, service_time_to_live
+              end
+            end
+            host_services_document available_services do |document|
+              # step: push the hosts / services /host/[HOSTNAME]/services
+              measure_time 'hosts.set.ms' do
+                debug "run: host path: #{backed_host_services_path}, services: #{document}"
+                backend.set backed_host_services_path, document.to_json
+              end
+            end
+            # step: are we pruning the services?
+            if pruning?
+              # step: get a current list of services we are running
+              advertised_services = backend.paths(backend_services_prefix).select do |path,host|
+                host == hostname
+              end
+              # step: deduct what we have from what we have advertised
+              bad_services = advertised_services.keys - available_services
+              puts "advertised_services: #{advertised_services.keys.sort}"
+              puts "available_services: #{available_services.sort}"
+              puts "bad_services: #{bad_services.sort}"
+              # step: do we have any services that should't be there?
+              if !bad_services.empty?
+                bad_services.each do |bad_service_path|
+                  info "run: deleting the bad service: #{bad_service_path}"
+                  backend.delete bad_service_path
                 end
               end
             end
-            # step: push the hosts / services /host/[HOSTNAME]/services
-            measure_time 'hosts.set.ms' do
-              debug "host path: #{host_services_path}, services: #{host_services}"
-              backend.set host_services_path, host_services.to_json
-            end
-            debug "run: going to sleep for #{settings['interval']}ms"
+            debug "run: going to sleep for #{interval}ms"
             gauge 'alive'
           end
         rescue BackendFailure => e
@@ -77,11 +92,6 @@ module ServiceRegistrar
           exit 1
         end
       end
-    end
-
-    private
-    def pruning?
-      settings['service_ttl'] == 'prune'
     end
   end
 end
