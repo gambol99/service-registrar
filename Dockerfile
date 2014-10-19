@@ -10,7 +10,7 @@ MAINTAINER <gambol99@gmail.com>
 RUN sudo apt-get update
 RUN sudo apt-get install -y ruby1.9.3
 RUN sudo apt-get install -y patch make supervisor
-RUN sudo gem install -V docker docker-api etcd zookeeper optionscrapper
+RUN sudo gem install -V docker docker-api etcd statsd-ruby zookeeper optionscrapper
 ADD lib /opt/registrar/lib
 ADD bin /opt/registrar/bin
 ADD docker/config/config.yml /opt/registrar/config.yml
