@@ -71,7 +71,7 @@ Docker Testing
 	# ETCD_PORT=$(docker port $DOCKER_ID 4001 | cut -d':' -f2)
 	# ETCD_HOST=$(hostname --ip-address)
 	# IPADDRESS=$ETCD_HOST
-	# export HOSTNAME="test101"
+	# HOSTNAME="test101"
 	# docker run -d -P \
         -e ETCD_HOST=$ETCD_HOST \
         -e ETCD_PORT=$ETCD_PORT \ 
