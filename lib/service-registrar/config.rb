@@ -83,6 +83,7 @@ module ServiceRegistrar
       # step: check the docker socket
       validate_docker @configuration
       # step: return the configuration
+      info "configuration: #{Configuration}"
       @configuration
     end
 
@@ -119,9 +120,9 @@ module ServiceRegistrar
 
     def load_environment filename = '/etc/environment'
       config = {}
-      debug "load_environment: checking for a environment file: #{filename}"
+      info "load_environment: checking for a environment file: #{filename}"
       if File.file? filename and File.readable? filename
-        File.open( ENVIRONMENT_FILE ).each do |x|
+        File.open( filename ).each do |x|
           next unless x =~ /^(.*)=(.*)$/
           config[$1] = $2
           debug "adding environment var: #{$1} value: #{$2}"

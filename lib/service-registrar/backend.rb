@@ -23,7 +23,8 @@ module ServiceRegistrar
       begin
         yield
       rescue Exception => e
-        raise BackendFailure e.message
+        error "api_operation: #{e.message}"
+        raise Exception, e.message
       end
     end
 
