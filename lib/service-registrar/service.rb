@@ -10,10 +10,10 @@ module ServiceRegistrar
   module Service
     private
     def host_services_document services, &block
-      {
-        :hostname => hostname,
-        :services => services
-      }
+      yield backend_hosts_prefix + '/' + hostname, {
+          :hostname => hostname,
+          :services => services
+        }
     end
 
     def container_documents &block
@@ -33,7 +33,6 @@ module ServiceRegistrar
       environment = extract_docker_environment docker
       path = service_path docker, environment
       debug "service_document: generating the service path: #{path}"
-      #PP.pp info
       service = {
         :id          => docker.id,
         :updated     => Time.now.to_i,
@@ -46,7 +45,6 @@ module ServiceRegistrar
         :cpushares   => config['CpuShares'],
         :memory      => config['Memory'],
         :volumes     => info['Volumes'] || {},
-        #:created     => Time.new(info['Created']).to_i,
         :name        => info['Name'],
         :running     => info['State']['Running'],
         :docker_pid  => info['State']['Pid'] || 0,

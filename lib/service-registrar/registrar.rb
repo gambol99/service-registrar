@@ -52,11 +52,11 @@ module ServiceRegistrar
                 backend.set path, document.to_json, service_time_to_live
               end
             end
-            host_services_document available_services do |document|
+            host_services_document available_services do |path,document|
               # step: push the hosts / services /host/[HOSTNAME]/services
               measure_time 'hosts.set.ms' do
-                debug "run: host path: #{backed_host_services_path}, services: #{document}"
-                backend.set backed_host_services_path, document.to_json
+                debug "run: host path: #{path}, services: #{document}"
+                backend.set path, document.to_json
               end
             end
             # step: are we pruning the services?
