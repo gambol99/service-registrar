@@ -8,8 +8,6 @@ require 'yaml'
 
 module ServiceRegistrar
   module Configuration
-    ENVIRONMENT_FILE = '/etc/environment'
-
     def default_configuration
       {
         'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
@@ -66,7 +64,7 @@ module ServiceRegistrar
       # step: load the configuration file if we have one
       @configuration.merge!(load_configuration config['config'])
       # step: load any environment file
-      @configuration.merge!(load_environment)
+      @configuration.merge!(load_environment config['environment']) if config['environment']
       # step: merge the user defined options
       @configuration.merge!(config)
       # step: setup the logger
@@ -119,12 +117,15 @@ module ServiceRegistrar
       method[/^(ttl|prune)$/]
     end
 
-    def load_environment filename = ENVIRONMENT_FILE
+    def load_environment filename = '/etc/environment'
       config = {}
+      debug "load_environment: checking for a environment file: #{filename}"
       if File.file? filename and File.readable? filename
         File.open( ENVIRONMENT_FILE ).each do |x|
           next unless x =~ /^(.*)=(.*)$/
           config[$1] = $2
+          debug "adding environment var: #{$1} value: #{$2}"
+          config[$1.downcase] = $2
         end
       end
       config

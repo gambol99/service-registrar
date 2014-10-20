@@ -44,6 +44,7 @@ module ServiceRegistrar
           o.on( '-D', '--daemonize', 'daemonize the service into the background') { options['daemonize'] = true }
           o.on( '-B BACKEND', '--backend BACKEND', 'specify the service discovery backend' ) { |x| options['backend'] = x }
           o.on( '-d FILE', '--docker FILE', 'the location of the docker socket file' ) { |x| options['docker'] = x }
+          o.on( '-e FILE', '--environment FILE', 'load the environment file (KEY=VALUE)' ) { |x| options['environment'] = x }
           o.on_command { options[:command] = :run }
         end
       end
