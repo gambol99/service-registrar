@@ -8,6 +8,8 @@ require 'yaml'
 
 module ServiceRegistrar
   module Configuration
+    ENVIRONMENT_FILE = '/etc/environment'
+
     def default_configuration
       {
         'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
@@ -15,7 +17,7 @@ module ServiceRegistrar
         'ttl'             => env('TTL','12000').to_i,
         'log'             => env('LOGFILE',STDOUT),
         'loglevel'        => env('LOGLEVEL','info'),
-        'hostname'        => env('HOSTNAME', %x(hostname -f).chomp ),
+        'hostname'        => env('HOST', %x(hostname -f).chomp ),
         'ipaddress'       => env('IPADDRESS', get_host_ipaddress ),
         'stats_prefix'    => env('STATS_PREFIX','registrar-service'),
         'services_prefix' => '/services',
@@ -63,6 +65,8 @@ module ServiceRegistrar
       @configuration = default_configuration
       # step: load the configuration file if we have one
       @configuration.merge!(load_configuration config['config'])
+      # step: load any environment file
+      @configuration.merge!(load_environment)
       # step: merge the user defined options
       @configuration.merge!(config)
       # step: setup the logger
@@ -113,6 +117,17 @@ module ServiceRegistrar
 
     def service_method? method
       method[/^(ttl|prune)$/]
+    end
+
+    def load_environment filename = ENVIRONMENT_FILE
+      config = {}
+      if File.file? filename and File.readable? filename
+        File.open( ENVIRONMENT_FILE ).each do |x|
+          next unless x =~ /^(.*)=(.*)$/
+          config[$1] = $2
+        end
+      end
+      config
     end
 
     def load_configuration filename

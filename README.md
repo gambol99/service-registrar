@@ -59,7 +59,7 @@ Docker Build & Run
     # docker run -d -P 
         -e ETCD_HOST=<IP> \
         -e ETCD_PORT=<PORT> \ 
-        -e HOSTNAME=$HOSTNAME \
+        -e HOST=$HOSTNAME \
         -e IPADDRESS=$PRIVATE_IP_ADDRESS \
         -e DOCKER_SOCKET=/var/sockets/docker.socket \
         -v /var/run:/var/sockets service-registrar
@@ -71,11 +71,11 @@ Docker Testing
 	# ETCD_PORT=$(docker port $DOCKER_ID 4001 | cut -d':' -f2)
 	# ETCD_HOST=$(hostname --ip-address)
 	# IPADDRESS=$ETCD_HOST
-	# HOSTNAME="test101"
+	# HOST="test101"
 	# docker run -d -P \
         -e ETCD_HOST=$ETCD_HOST \
         -e ETCD_PORT=$ETCD_PORT \ 
-        -e HOSTNAME=$HOSTNAME \
+        -e HOST=$HOSTNAME \
         -e IPADDRESS=$IPADDRESS \
         -e DOCKER_SOCKET=/var/sockets/docker.sock \
         -v /var/run:/var/sockets service-registrar
