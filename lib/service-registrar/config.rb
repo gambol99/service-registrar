@@ -22,7 +22,7 @@ module ServiceRegistrar
         'hosts_prefix'    => '/hosts',
         'running_only'    => true,
         'service_ttl'     => 'prune', # ttl
-        'path'     => [
+        'service_path'    => [
           "environment:ENVIRONMENT",
           "environment:NAME",
           "environment:APP",
@@ -42,7 +42,15 @@ module ServiceRegistrar
     end
 
     def env key, default
-      ( ENV[key] ) ? ENV[key] : default
+      return default unless ENV[key]
+      # step: check if the variable is empty
+      if ENV[key].empty?
+        error "the environment variable: #{key} is there, but empty - return #{default}"
+        default
+      else
+        debug "env: environment: #{key}, value: #{ENV[key]}"
+        ENV[key]
+      end
     end
 
     def settings

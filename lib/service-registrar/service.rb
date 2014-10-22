@@ -4,16 +4,14 @@
 #
 #  vim:ts=2:sw=2:et
 #
-require 'pp'
-
 module ServiceRegistrar
   module Service
     private
     def host_services_document services, &block
       yield backend_hosts_prefix + '/' + hostname, {
-          :hostname => hostname,
-          :services => services
-        }
+        :hostname => hostname,
+        :services => services
+      }
     end
 
     def container_documents &block
@@ -83,7 +81,7 @@ module ServiceRegistrar
     end
 
     def backend_services_path
-      settings['path']
+      settings['service_path']
     end
 
     def backend_services_prefix

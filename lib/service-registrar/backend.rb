@@ -5,10 +5,13 @@
 #  vim:ts=2:sw=2:et
 #
 require 'logging'
+require 'errors'
 
 module ServiceRegistrar
   class Backend
     include ServiceRegistrar::Logging
+    include ServiceRegistrar::Errors
+
     attr_reader :config
     def initialize config
       @config = config
@@ -24,7 +27,7 @@ module ServiceRegistrar
         yield
       rescue Exception => e
         error "api_operation: #{e.message}"
-        raise Exception, e.message
+        raise BackendFailure, e.message
       end
     end
 

@@ -11,6 +11,7 @@ require 'utils'
 require 'backends'
 require 'logging'
 require 'service'
+require 'errors'
 require 'statistics'
 
 module ServiceRegistrar
@@ -22,6 +23,7 @@ module ServiceRegistrar
     include ServiceRegistrar::DockerAPI
     include ServiceRegistrar::Statistics
     include ServiceRegistrar::Service
+    include ServiceRegistrar::Errors
 
     def initialize config = {}
       # step: load the configuration
