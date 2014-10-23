@@ -8,7 +8,7 @@ module ServiceRegistrar
   module Service
     private
     def host_services_document services, &block
-      yield backend_hosts_prefix + '/' + hostname, {
+      yield prefix_hosts + '/' + hostname, {
         :hostname => hostname,
         :services => services
       }
@@ -16,11 +16,11 @@ module ServiceRegistrar
 
     def container_documents &block
       containers do |container|
-        unless running?( container )
-          next unless settings['running_only']
-        end
+        # step: if the container is not running and we are reporting
+        # running only, move on
+        next if !running?( container ) and running_only?
         service_document container do |path,document|
-          yield path, document if block_given?
+          yield path, document
         end
       end
     end
@@ -29,19 +29,19 @@ module ServiceRegistrar
       config      = extract_docker_config docker
       info        = extract_docker_info docker
       environment = extract_docker_environment docker
-      path = service_path docker, environment
+      path        = service_path docker, environment
       debug "service_document: generating the service path: #{path}"
       service = {
         :id          => docker.id,
         :updated     => Time.now.to_i,
         :host        => hostname,
-        :ipaddress   => host_ipaddress,
+        :ipaddress   => ipaddress,
+        :environment => environment,
         :image       => config['Image'],
-        :domain      => config['Domainname'] || '',
         :entrypoint  => config['Entrypoint'] || '',
-        :tags        => extract_docker_environment_tags( environment ),
         :cpushares   => config['CpuShares'],
         :memory      => config['Memory'],
+        :tags        => extract_docker_environment_tags( environment ),
         :volumes     => info['Volumes'] || {},
         :name        => info['Name'],
         :running     => info['State']['Running'],
@@ -57,7 +57,7 @@ module ServiceRegistrar
 
     def service_path docker, environment
       # step: generate the path from the elements
-      path = backend_services_path.inject([]) { |paths,x|
+      path = prefix_path.inject([]) { |paths,x|
         # step: ignore any illigal formated
         unless x =~ /^\w+:\w+$/
           error "service_path: element: #{x} is invalid, skipping the element"
@@ -77,23 +77,7 @@ module ServiceRegistrar
           paths << extract_provider_info( element_value )
         end
       }.compact
-      "#{backend_services_prefix}/#{path.join('/')}"
-    end
-
-    def backend_services_path
-      settings['service_path']
-    end
-
-    def backend_services_prefix
-      settings['services_prefix']
-    end
-
-    def backend_hosts_prefix
-      settings['hosts_prefix']
-    end
-
-    def backed_host_services_path
-      "#{backend_hosts_prefix}/#{hostname}"
+      "#{prefix_services}/#{path.join('/')}"
     end
 
     def extract_docker_info docker
@@ -123,14 +107,6 @@ module ServiceRegistrar
       when 'IPADDRESS'
         host_ipaddress
       end
-    end
-
-    def hostname
-      settings['hostname']
-    end
-
-    def host_ipaddress
-      settings['ipaddress'] || get_host_ipaddress
     end
 
     def service_time_to_live

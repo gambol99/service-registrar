@@ -12,7 +12,6 @@ module ServiceRegistrar
     def containers &block
       # step: ensure the docker socket
       set_docker_socket
-      raise ArgumentError, 'you have not specified a block' unless block_given?
       ::Docker::Container.all.each do |docker|
         yield ::Docker::Container.get( docker.id )
       end

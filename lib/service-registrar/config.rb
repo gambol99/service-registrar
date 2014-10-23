@@ -11,46 +11,35 @@ module ServiceRegistrar
     def default_configuration
       {
         'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
-        'interval'        => env('INTERVAL','5000').to_i,
+        'interval'        => env('INTERVAL','3000').to_i,
         'ttl'             => env('TTL','12000').to_i,
         'log'             => env('LOGFILE',STDOUT),
+        # The logging level
         'loglevel'        => env('LOGLEVEL','info'),
+        # The hostname to use when registering services, should be the docker host
         'hostname'        => env('HOST', %x(hostname -f).chomp ),
+        # The ip address to use when advertising the service - namely the ip address of the docker host
         'ipaddress'       => env('IPADDRESS', get_host_ipaddress ),
-        'stats_prefix'    => env('STATS_PREFIX','registrar-service'),
-        'services_prefix' => '/services',
-        'hosts_prefix'    => '/hosts',
-        'running_only'    => true,
-        'service_ttl'     => 'prune', # ttl
-        'service_path'    => [
-          "environment:ENVIRONMENT",
-          "environment:NAME",
-          "environment:APP",
-          "container:HOSTNAME",
+        # The prefix to use when sending events/metrics to statsd
+        'prefix_stats'    => env('PREFIX_STATSD','registrar-service'),
+        # The prefix to use when adding the services information - directory backend only
+        'prefix_services' => env('PREFIX_SERVICES','/services'),
+        # The prefix to use when adding the hosts information - directory backend only
+        'prefix_hosts'    => env('PREFIX_HOSTS','/hosts'),
+        # This is used when adding to a directoy service, like etcd or zookeeper
+        'prefix_path'     => [
+          'environment:ENVIRONMENT',
+          'environment:NAME',
+          'environment:APP',
+          'container:HOSTNAME',
         ],
-        'backend'  => env('BACKEND','etcd'),
-        'backends' => {
-          'zookeeper' => {
-            'uri'   => env('ZOOKEEPER_URI','localhost:2181'),
-          },
-          'etcd' => {
-            'host'  => env('ETCD_HOST','localhost'),
-            'port'  => env('ETCD_PORT','4001').to_i
-          }
-        }
+        # Provide information on RUNNING containers
+        'running_only'    => true,
+        # The method to use when disposing services
+        'service_ttl'     => 'prune', # ttl
+        # The backend uri for registering services in
+        'backend'  => env('BACKEND','etcd://localhost:4001'),
       }
-    end
-
-    def env key, default
-      return default unless ENV[key]
-      # step: check if the variable is empty
-      if ENV[key].empty?
-        error "the environment variable: #{key} is there, but empty - return #{default}"
-        default
-      else
-        debug "env: environment: #{key}, value: #{ENV[key]}"
-        ENV[key]
-      end
     end
 
     def settings
@@ -65,82 +54,90 @@ module ServiceRegistrar
       settings['service_ttl'] == 'prune'
     end
 
+    def hostname
+      settings['hostname']
+    end
+
+    def ipaddress
+      settings['ipaddress']
+    end
+
+    def running_only?
+      settings['running_only']
+    end
+
+    %w(path services hosts stats).each do |x|
+      define_method "prefix_#{x}" do
+        settings["prefix_#{x}"]
+      end
+    end
+
     private
-    def validate_configuration config
+    # method: loads the default configuration, merges the config file, the environment file
+    # and this the user defined options to produce the final service config
+    def load_configuration config
       # step: start by loading the default configuration
       @configuration = default_configuration
       # step: load the configuration file if we have one
-      @configuration.merge!(load_configuration config['config'])
+      @configuration.merge!(load_configuration_file config['config'])
       # step: load any environment file
-      @configuration.merge!(load_environment config['environment']) if config['environment']
+      @configuration.merge!(load_environment_file config['environment']) if config['environment']
       # step: merge the user defined options
       @configuration.merge!(config)
       # step: setup the logger
-      Logging::Logger::init @configuration['log'], loglevel( @configuration['loglevel'] )
+      Logging::Logger::init @configuration['log'], loglevel(@configuration['loglevel'])
       # checkpoint: we should have a fully merged config now
       debug "validate_configuration: merged configuration: #{@configuration}"
       # step: verfiy the config is correct
-      required_settings %w(docker interval ttl log loglevel backend backends service_ttl), @configuration
-      # step: check the actual config
-      raise ArgumentError, "interval should be a positive integer" unless postive_integer? @configuration['interval']
-      raise ArgumentError, "ttl should be positive integer"        unless postive_integer? @configuration['ttl']
+      validate_configuration @configuration
+    end
+
+    def validate_configuration configuration
+      debug "validate_configuration: validating the configuration"
       # step: check we have valid service method
-      raise ArgumentError, "invalid service ttl method" unless service_method? @configuration['service_ttl']
+      raise ArgumentError, "invalid service ttl method" unless service_method? configuration['service_ttl']
       # step: check the backend configuration
-      validate_backend @configuration
+      raise ArgumentError, "the backend: #{backend} does not exits" unless backend? configuration['backend']
       # step: check the docker socket
-      validate_docker @configuration
+      validate_docker configuration
       # step: return the configuration
-      info "configuration: #{Configuration}"
-      @configuration
+      info "configuration: #{configuration}"
+      configuration
     end
 
-    def validate_backend configuration
-      debug "validate_backend_configuration: checking the backend configuration"
-      backend = configuration['backend']
-      info "validate_backend_configuration: backend selected: #{backend}"
-      info "validate_backend_configuration: available backends: #{backends}"
-      backend_config = configuration['backends'][backend] || {}
-      # check the backend exists
-      unless backends.include? backend
-        raise ArgumentError, "invalid backend, available backends are #{backends.join(',')}"
+    def validate_docker configuration
+      %w(exists socket readable writable).each do |x|
+        unless File.send("#{x}?".to_sym, configuration['docker'] )
+          raise ArgumentError, "the docker socket file: #{configuration['docker']} does or is not #{x}"
+        end
       end
-      unless configuration['backends'].has_key? backend
-        raise ArgumentError, "you have not specified any backend configuration"
-      end
-      # step: check the backend config
-      debug "validate_backend_configuration: checking the configuration against the backend: #{backend}"
-      backend_configuration backend, backend_config
-      info "validate_backend_configuration: backend configuration correct"
-    end
-
-    def validate_docker config
-      socket = config['docker']
-      raise ArgumentError, "the docker socket: #{socket} does not exist"    unless File.exists? socket
-      raise ArgumentError, "the docker socket: #{socket} is not a socket"   unless File.socket? socket
-      raise ArgumentError, "the docker socket: #{socket} is not readable"   unless File.readable? socket
-      raise ArgumentError, "the docker socket: #{socket} is not writable"   unless File.writable? socket
     end
 
     def service_method? method
       method[/^(ttl|prune)$/]
     end
 
-    def load_environment filename = '/etc/environment'
+    def load_environment_file filename = '/etc/environment'
       config = {}
       info "load_environment: checking for a environment file: #{filename}"
       if File.file? filename and File.readable? filename
-        File.open( filename ).each do |x|
-          next unless x =~ /^(.*)=(.*)$/
-          config[$1] = $2
-          debug "adding environment var: #{$1} value: #{$2}"
-          config[$1.downcase] = $2
+        parse_environment_file filename do |key,value|
+          config[key] = value
+          debug "adding environment var: #{key} value: #{value}"
+          config[key.downcase] = value
         end
       end
       config
     end
 
-    def load_configuration filename
+    def parse_environment_file filename, &block
+      File.open( filename ).each do |x|
+        next unless x =~ /^(.*)=(.*)$/
+        yield $1, $2
+      end
+    end
+
+    def load_configuration_file filename
       ( filename ) ? ::YAML.load(File.read(filename)) : {}
     end
   end

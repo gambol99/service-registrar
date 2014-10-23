@@ -4,7 +4,6 @@
 #
 #  vim:ts=2:sw=2:et
 #
-require 'thread'
 require 'docker-api'
 require 'config'
 require 'utils'
@@ -26,58 +25,32 @@ module ServiceRegistrar
     include ServiceRegistrar::Errors
 
     def initialize config = {}
-      # step: load the configuration
-      validate_configuration config
-      info "initialize: service registar successfully initialized"
+      load_configuration config
     end
 
     def run
-      info "run: backend: #{settings['backend']}, interval: #{settings['interval']}"
-      # step: load the backend plugin
-      debug "run: loading the backend provider: #{settings['backend']}"
-      backend_cfg = settings['backends'][settings['backend']]
-      backend = load_backend settings['backend'], backend_cfg
-      debug "run: backend provider: #{backend.inspect}"
-      # step: run the statistics dumper
       statistics_runner
-      loop do
+      # step: wake me up on every interval
+      wake(interval) do
         begin
-          sleep_ms interval
           measure_time 'processing.ms' do
-            available_services = []
+            available_services = {}
             # step: generate the services
             container_documents do |path,document|
-              available_services << path
+              available_services[path] = document
               debug "run: path: #{path}, ttl: #{service_time_to_live}, document: #{document}"
               # step: push the document into the backend
               measure_time 'services.set.ms' do
-                backend.set path, document.to_json, service_time_to_live
+                backend.service path, document, service_time_to_live
               end
             end
-            host_services_document available_services do |path,document|
-              # step: push the hosts / services /host/[HOSTNAME]/services
-              measure_time 'hosts.set.ms' do
-                debug "run: host path: #{path}, services: #{document}"
-                backend.set path, document.to_json
-              end
-            end
-            # step: are we pruning the services?
+            # step: are we pruning the services
             if pruning?
-              # step: get a current list of services we are running
-              advertised_services = backend.paths(backend_services_prefix).select do |path,host|
-                host == hostname
-              end
-              # step: deduct what we have from what we have advertised
-              bad_services = advertised_services.keys - available_services
-              # step: do we have any services that should't be there?
-              if !bad_services.empty?
-                bad_services.each do |bad_service_path|
-                  info "run: deleting the bad service: #{bad_service_path}"
-                  backend.delete bad_service_path
-                end
+              measure_time 'services.pruning.ms' do
+                backend.pruning hostname, prefix_services, available_services
               end
             end
-            debug "run: going to sleep for #{interval}ms"
+            # step: update the alive gauge
             gauge 'alive'
           end
         rescue BackendFailure => e
@@ -91,6 +64,19 @@ module ServiceRegistrar
           exit 1
         end
       end
+    end
+
+    private
+    def backend
+      @backend ||= nil
+      if @backend.nil?
+        info "backend: backend: #{settings['backend']}, interval: #{interval}"
+        # step: load the backend plugin
+        debug "backend: loading the backend provider: #{settings['backend']}"
+        @backend = load_backend settings['backend'], settings
+        debug "backend: backend provider: #{backend.inspect}"
+      end
+      @backend
     end
   end
 end

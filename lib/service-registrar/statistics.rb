@@ -9,9 +9,8 @@ module ServiceRegistrar
     def statistics_runner
       info "statistics_runner: starting the statistics running thread"
       @statistics_dump ||= Thread.new do
-        loop do
+        wake(10000) do
           info "statistics dump: #{statistics}"
-          sleep_ms 10000
         end
         warn "statistics_runner: thread ended"
       end
@@ -29,10 +28,10 @@ module ServiceRegistrar
     end
 
     def measure_time key
-      start_time = Time.now.to_i
+      start_time = Time.now
       response   = yield if block_given?
-      time_taken = Time.now.to_i - start_time
-      statistics[key] = time_taken
+      time_taken = Time.now - start_time
+      statistics[key] = "%.3f" % [ (time_taken * 1000) ]
       statsd.timing( key, time_taken ) if statsd
       response
     end
@@ -45,7 +44,7 @@ module ServiceRegistrar
         @statsd = Statsd.new(
           host: settings['statsd']['host'],
           port: settings['statsd']['port'],
-          prefix: settings['stats_prefix']
+          prefix: settings['prefix_statsd']
         )
       end
       @statsd
