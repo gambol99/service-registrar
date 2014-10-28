@@ -45,7 +45,7 @@ module ServiceRegistrar
         # step: convert the document into a consul service
         consul_services document do |service|
           # step: is the service already advertised?
-          if !advertised_services["Services"].has_key?(service["Service"]["ID"])
+          if !advertised_services["Services"].has_key?( service["Service"]["ID"] )
             info "service: consul service: #{service}"
             register_service service
           end
@@ -109,7 +109,8 @@ module ServiceRegistrar
       end
 
       def list_services node
-        JSON.parse( api(api_node_services + "/#{node}", nil, :get).body )
+        services = api(api_node_services + "/#{node}", nil, :get)
+        JSON.parse( ( services.body ) ? services.body : {} )
       end
 
       def register_service service
