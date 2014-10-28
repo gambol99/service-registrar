@@ -7,11 +7,9 @@
 module ServiceRegistrar
   module Service
     private
-    def host_services_document services, &block
-      yield prefix_hosts + '/' + hostname, {
-        :hostname => hostname,
-        :services => services
-      }
+    def container_document id, &block
+
+
     end
 
     def container_documents &block
