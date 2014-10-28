@@ -48,45 +48,46 @@ Configuration
 
     def default_configuration
       {
-        # the file location of the docker socket
         'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
-        # the interval between updates to the registry (zookeeper/etcd/consul)
-        'interval'        => env('INTERVAL','5000').to_i,
-        # the default time to live when using service_ttl == 'ttl'
+        'interval'        => env('INTERVAL','3000').to_i,
         'ttl'             => env('TTL','12000').to_i,
-        # fairly obvious
         'log'             => env('LOGFILE',STDOUT),
+        # The logging level
         'loglevel'        => env('LOGLEVEL','info'),
-        # Allow use to override the hostname, useful when running inside of a docker
-        'hostname'        => env('HOSTNAME', %x(hostname -f).chomp ),
-        # The ip address to advertise in the service document
-        'ipaddress'       => env('IPADDRESS',get_host_ipaddress),
-        'stats_prefix'    => env('STATS_PREFIX','registrar-service'),
-        # the path prefixes to the registry
-        'services_prefix' => '/services',
-        'hosts_prefix'    => '/hosts',
-        # Only push service document for RUNNING containers?
-        'running_only'    => true,
-        'service_ttl'     => 'prune', # ttl
-        # Allows use to customize the markup of the service path push into the registry
-        'path'     => [
-          "environment:ENVIRONMENT",
-          "environment:NAME",
-          "environment:APP",
-          "container:HOSTNAME",
+        # The hostname to use when registering services, should be the docker host
+        'hostname'        => env('HOST', %x(hostname -f).chomp ),
+        # The ip address to use when advertising the service - namely the ip address of the docker host
+        'ipaddress'       => env('IPADDRESS', get_host_ipaddress ),
+        # The prefix to use when sending events/metrics to statsd
+        'prefix_stats'    => env('PREFIX_STATSD','registrar-service'),
+        # The prefix to use when adding the services information - directory backend only
+        'prefix_services' => env('PREFIX_SERVICES','/services'),
+        # The prefix to use when adding the hosts information - directory backend only
+        'prefix_hosts'    => env('PREFIX_HOSTS','/hosts'),
+        # This is used when adding to a directoy service, like etcd or zookeeper
+        'prefix_path'     => [
+          'environment:ENVIRONMENT',
+          'environment:NAME',
+          'environment:APP',
+          'container:HOSTNAME',
         ],
-        'backend'  => env('BACKEND','etcd'),
-        'backends' => {
-          'zookeeper' => {
-            'uri'   => env('ZOOKEEPER_URI','localhost:2181'),
-          },
-          'etcd' => {
-            'host'  => env('ETCD_HOST','localhost'),
-            'port'  => env('ETCD_PORT','4001').to_i
-          }
-        }
+        # Provide information on RUNNING containers
+        'running_only'    => true,
+        # The method to use when disposing services
+        'service_ttl'     => 'prune', # ttl
+        # The backend uri for registering services in
+        'backend'  => env('BACKEND','etcd://localhost:4001'),
       }
     end
+
+Backends:
+---------
+
+The backend or registry is configured using a simple uri - from the command line or from the BACKEND environment variable
+
+    # ./registrar run -B etcd://192.168.13.90:49155 -i 3000
+    or
+    # ./registrar run -B consul://192.168.13.90:8500 -i 3000
 
 Docker Build & Run
 ------------------
@@ -95,26 +96,24 @@ Docker Build & Run
     # cd service-registrar
     # docker build -t service-registrar -- .
     # docker run -d -P
-        -e ETCD_HOST=<IP> \
-        -e ETCD_PORT=<PORT> \
         -e HOST=$HOSTNAME \
         -e IPADDRESS=$PRIVATE_IP_ADDRESS \
+        -e BACKEND="etcd://<IP>:<PORT>"
         -e DOCKER_SOCKET=/var/sockets/docker.socket \
         -v /var/run:/var/sockets service-registrar
 
 Docker Testing
 ------------------
 
-	# DOCKER_ID=$(docker run -d -e APP=etcd -e NAME=backend -P -e ENVIRONMENT=prod etcd)
+	# DOCKER_ID=$(docker run -d -e APP=etcd -e NAME=backend -P -e ENVIRONMENT=prod coreos/etcd)
 	# ETCD_PORT=$(docker port $DOCKER_ID 4001 | cut -d':' -f2)
 	# ETCD_HOST=$(hostname --ip-address)
 	# IPADDRESS=$ETCD_HOST
 	# HOST="test101"
 	# docker run -d -P \
-        -e ETCD_HOST=$ETCD_HOST \
-        -e ETCD_PORT=$ETCD_PORT \
         -e HOST=$HOSTNAME \
         -e IPADDRESS=$IPADDRESS \
+        -e BACKEND="etcd://${ETCD_HOST}:${ETCD_PORT}"
         -e DOCKER_SOCKET=/var/sockets/docker.sock \
         -v /var/run:/var/sockets service-registrar
 
