@@ -38,12 +38,12 @@ module ServiceRegistrar
         o.on( '-c CONFIG', '--config CONFIG', 'the configuration file for the registration service' ) { |x| options['config'] = x }
         o.on( '-d', '--debug', 'switch on debug logging') { options['loglevel'] = 'debug' }
         o.command :run, 'start daemon service and push services to the backend' do
-          o.on( '-i MS', '--interval MS', 'specify the interval between pushing services' ) { |x| options['interval'] = x.to_i }
-          o.on( '-l FILE', '--log FILE', 'the path for the log file to use' ) { |x| options['log'] = x }
-          o.on( '-t MS', '--ttl MS', 'the time to live for services in service discovery, in ms') { |x| options['ttl'] = x.to_i }
-          o.on( '-D', '--daemonize', 'daemonize the service into the background') { options['daemonize'] = true }
+          o.on( '-H HOSTNAME', '--hostname', 'the hostname to add when pushing services' ) { |x| options['hostname'] = x }
+          o.on( '-a IPADDRESS', '--addr IPADDRESS', 'the ipaddress to advertise in services' ) { |x| options['ipaddress'] = x }
           o.on( '-B BACKEND', '--backend BACKEND', 'specify the service discovery backend' ) { |x| options['backend'] = x }
-          o.on( '-d FILE', '--docker FILE', 'the location of the docker socket file' ) { |x| options['docker'] = x }
+          o.on( '-i MS', '--interval MS', 'specify the interval between pushing services' ) { |x| options['interval'] = x.to_i }
+          o.on( '-t MS', '--ttl MS', 'the time to live for services in service discovery, in ms') { |x| options['ttl'] = x.to_i }
+          o.on( '-l FILE', '--log FILE', 'the path for the log file to use' ) { |x| options['log'] = x }
           o.on( '-e FILE', '--environment FILE', 'load the environment file (KEY=VALUE)' ) { |x| options['environment'] = x }
           o.on_command { options[:command] = :run }
         end

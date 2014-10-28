@@ -16,25 +16,36 @@ module ServiceRegistrar
     def split_array list, symbol = '='
       list.inject({}) do |map,element|
         elements = element.split symbol
-        if elements.size > 0
-          map[elements.first] = elements.last
-        end
+        map[elements.first] = elements.last if elements.size > 0
         map
       end
     end
 
-    def to_seconds milli
-      milli / 1000
+    def env key, default
+      return default unless ENV[key]
+      # step: check if the variable is empty
+      if ENV[key].empty?
+        error "env: the environment variable: #{key} is there, but empty - return #{default}"
+        default
+      else
+        debug "env: environment: #{key}, value: #{ENV[key]}"
+        ENV[key]
+      end
     end
 
-    def sleep_ms time
-      sleep ( time * 0.001 )
+    def wake milli, &block
+      loop do
+        sleep ( milli / 1000 )
+        yield
+      end
     end
 
-    def postive_integer? value
-      return false unless value.is_a? Integer
-      return false if value <= 0
-      true
+    def uri_port uri
+      URI(uri).port
+    end
+
+    def uri_hostname uri
+      URI(uri).hostname
     end
 
     def loglevel level
@@ -46,9 +57,7 @@ module ServiceRegistrar
     end
 
     def required_settings list, supplied
-      list.each do |x|
-        raise ArgumentError, "you have not specified the #{x} options" unless supplied.has_key? x
-      end
+      list.each { |x| raise ArgumentError, "you've not specified the #{x} option" unless supplied.has_key? x }
     end
   end
 end

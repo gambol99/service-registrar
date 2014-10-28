@@ -9,33 +9,60 @@ module ServiceRegistrar
     class Etcd < Backend
       require 'etcd'
 
-      def set path, value, ttl = 0
+      def service path, document, time_to_live
         api_operation do
-          set_options = {
-            :value => value,
-            :recursive => true
-          }
-          set_options[:ttl] = ttl if ttl > 0
-          etcd.set path, set_options
+          # step: check if the path already exists and if not, set it
+          unless etcd.exists? path
+            info "service: path: #{path}, service: #{document}"
+            set_options = {
+              :value     => document.to_json,
+              :recursive => true
+            }
+            set_options[:ttl] = time_to_live if time_to_live > 0
+            etcd.set path, set_options
+          end
         end
       end
 
+      def pruning hostname, services_path, available_services
+        # step: get a current list of services we are running
+        #debug "pruning: hostname: #{hostname}, services_path: #{services_path}, available_services: #{available_services}"
+        advertised_services = advertised_paths hostname, services_path
+        #debug "pruning: advertised_services: #{advertised_services}"
+        # step: deduct what we have from what we have advertised
+        bad_services = advertised_services.keys - available_services.keys
+        # step: do we have any services that should't be there?
+        if !bad_services.empty?
+          bad_services.each do |bad_service_path|
+            info "pruning: deleting the bad service: #{bad_service_path}"
+            delete bad_service_path
+          end
+        end
+      end
+
+      private
       def delete path
         api_operation do
           etcd.delete path, recursive: true
         end
       end
 
-      def paths root_path = default_root_path
-        api_operation do
-          paths_list recursive_nodes( root_path )
+      def advertised_paths hostname, services_path = '/services'
+        etcd_services_paths(services_path).select do |path,host|
+          debug "path: #{path}, hostname: #{hostname}, host: #{host}"
+          host == hostname
         end
       end
 
-      private
-      def paths_list node, list = {}
+      def etcd_services_paths root_path = default_root_path
+        api_operation do
+          etcd_paths recursive_nodes( root_path )
+        end
+      end
+
+      def etcd_paths node, list = {}
         if node.dir
-          node.children.each { |x| paths_list(x,list) } if node.children
+          node.children.each { |x| etcd_paths(x,list) } if node.children
         else
           list[node.key] = JSON.parse(node.value)['host']
         end
@@ -48,28 +75,15 @@ module ServiceRegistrar
         end
       end
 
-      def self.valid? configuration
-        return false unless configuration['host']
-        return false unless configuration['port']
-        true
-      end
-
       def etcd
         @etcd ||= connection
       end
 
       def connection
-        info "connection: attempting to make a connection to etcd backend service:"
-        options = {
-          :host => config['host'],
-          :port => config['port'],
-        }
-        debug "connection: host: #{config['host']}, port: #{config['port']}"
-        options[:ca_file]  = config['ca_file'] if config['ca_file']
-        options[:use_ssl]  = true if config['use_ssl']
-        options[:ssl_cert] = OpenSSL::X509::Certificate.new( File.read( config['ssl_cert'] ) ) if config['ssl_cert']
-        options[:ssl_key]  = OpenSSL::PKey::RSA.new(config['ssl_key']) if config['ssl_key']
-        ::Etcd.client( options )
+        @etcd_hostname ||= uri_hostname uri
+        @etcd_port     ||= uri_port uri
+        debug "connection: host: #{@etcd_hostname}, port: #{@etcd_port}"
+        ::Etcd.client( host: @etcd_hostname, port: @etcd_port )
       end
     end
   end

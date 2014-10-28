@@ -7,31 +7,33 @@
 require 'backend'
 require 'backends/zookeeper'
 require 'backends/etcd'
+require 'backends/consul'
 
 module ServiceRegistrar
   module Backends
-    def backends
-      debug "backends: pulling a list of the backends"
-      ServiceRegistrar::Backends.constants.select { |x|
-        Class === ServiceRegistrar::Backends.const_get( x )
-      }.delete_if { |x| x =~ /Backend/ }.map(&:downcase).map(&:to_s)
-    end
-
-    def backend? name
-      debug "backend? checking the backend: #{name} exists"
-      backends.include? name
-    end
-
-    def backend_configuration name, configuration
-      debug "backend_configuration: validating the configuration is correct"
-      ServiceRegistrar::Backends.const_get( name.capitalize.to_sym ).valid? configuration
+    def backend? uri
+      uri[/^(consul|etcd|zoo):\/\//] ? true : false
     end
 
     private
-    def load_backend name, configuration
-      debug "load_backend: name: #{name}, configuration: #{configuration}"
-      raise ArgumentError, "the backend: #{name} is not supported" unless backend? name
-      ServiceRegistrar::Backends.const_get( name.capitalize.to_sym ).new( configuration )
+    def load_backend uri, config
+      raise ArgumentError, "the backend: #{uri} is not supported" unless backend? uri
+      case uri
+      when /^zoo:/
+        instance_backend('zookeeper',uri,config)
+      when /^etcd:/
+        instance_backend('etcd',uri,config)
+      when /^consul:/
+        instance_backend('consul',uri,config)
+      end
+    end
+
+    def instance_backend name, uri, settings
+      klassName = name.capitalize.to_sym
+      debug "instance_backend: attempting to load the backend, class: #{klassName}"
+      ServiceRegistrar::Backends.const_get(klassName).new(uri,settings)
     end
   end
 end
+
+#not$r0ger

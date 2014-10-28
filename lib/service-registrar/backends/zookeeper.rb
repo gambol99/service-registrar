@@ -31,10 +31,6 @@ module ServiceRegistrar
       end
 
       private
-      def self.valid? configuration
-        raise ArgumentError, "you have not specified the zookeeper uri: #{configuration}" unless configuration['uri']
-      end
-
       def ensure_pathway path
         root = ''
         zookeeper_path = path.gsub(/^\/+/,'')

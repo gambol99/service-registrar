@@ -15,6 +15,7 @@ module ServiceRegistrar
   autoload :Version,  "#{ROOT}/service-registrar/version"
   autoload :Utils,    "#{ROOT}/service-registrar/utils"
   autoload :Logging,  "#{ROOT}/service-registrar/logging"
+  autoload :Errors,   "#{ROOT}/service-registrar/errors"
 
   def self.version
     ServiceRegistrar::VERSION
