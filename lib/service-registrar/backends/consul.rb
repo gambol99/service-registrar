@@ -45,7 +45,7 @@ module ServiceRegistrar
         # step: convert the document into a consul service
         consul_services document do |service|
           # step: is the service already advertised?
-          if !advertised_services["Services"].has_key?( service["Service"]["ID"] )
+          if advertised_services.empty? or !advertised_services["Services"].has_key?( service["Service"]["ID"] )
             info "service: consul service: #{service}"
             register_service service
           end
@@ -55,6 +55,9 @@ module ServiceRegistrar
       def pruning hostname, services_path, available_services
         # step: get a list of advertised services we apparently have
         advertised = list_services( hostname )
+        # step: if we have not services - we can throw back
+        return if advertised.empty?
+        # step: strip out the services
         advertised_services = advertised["Services"]
         # step: we need to convert to consul services and grab the ids
         available_consul_services = {}
@@ -91,6 +94,7 @@ module ServiceRegistrar
 
       def service_ports node_address, ports, &block
         ports.each_pair do |port,mapping|
+          next if port.nil? or mapping.nil?
           if port =~ /^([0-9]+)($|\/(tcp|udp))/
             service_map  = mapping.first
             service_port = {
@@ -109,8 +113,9 @@ module ServiceRegistrar
       end
 
       def list_services node
-        services = api(api_node_services + "/#{node}", nil, :get)
-        JSON.parse( ( services.body ) ? services.body : {} )
+        service_list = api(api_node_services + "/#{node}", nil, :get)
+        return {} if service_list.body =~ /^null/
+        JSON.parse( service_list.body )
       end
 
       def register_service service
