@@ -87,29 +87,7 @@ module ServiceRegistrar
       private
       # method: Converts the service document into one or more consul services
       def consul_services document, &block
-        service_ports document[:host], document[:ports] do |service_port|
-          yield consul_service_document(service_port,document)
-        end
-      end
-
-      def service_ports node_address, ports, &block
-        ports.each_pair do |port,mapping|
-          next if port.nil? or mapping.nil?
-          if port =~ /^([0-9]+)($|\/(tcp|udp))/
-            service_map  = mapping.first
-            service_port = {
-              :host_port       => service_map['HostPort'].to_i,
-              :container_port  => $1.to_i,
-              :proto           => $3 || 'tcp'
-            }
-            service_port[:host_ip] = case service_map['HostIp']
-            when /^(0\.){3}0$/; node_address
-            else
-              service_map['HostIp']
-            end
-            yield service_port
-          end
-        end
+        yield consul_service_document document
       end
 
       def list_services node
@@ -126,49 +104,22 @@ module ServiceRegistrar
         api api_catalog_deregister, service
       end
 
-      def consul_service_name document, port
-        service_name   = document[:environment]["SERVICE_#{port}_NAME"]
-        service_name ||= document[:environment]["SERVICE_NAME"]
-        service_name = document[:image].split('/').last + "-#{port}" if service_name.nil?
-        service_name
-      end
-
-      def consul_service_tags document, port
-        service_tags = nil
-        if document[:environment]["SERVICE_#{port}_TAGS"]
-          service_tags = document[:environment]["SERVICE_#{port}_TAGS"].split(',')
-        elsif document[:environment]["SERVICE_TAGS"]
-          service_tags = document[:environment]["SERVICE_TAGS"].split(',')
-        end
-        service_tags ||= []
-      end
-
       def consul_datacenter document
-        document[:environment]["CONSUL_DC"] || 'dc1'
+        document[:env]["CONSUL_DC"] || 'dc1'
       end
 
-      def consul_service_document service_port, document
-        container_port = service_port[:container_port]
-        host_name      = document[:host]
-        host_port      = service_port[:host_port]
-        host_ip        = service_port[:host_ip]
-        datacenter     = consul_datacenter(document)
-        service = {
-          "Datacenter" => datacenter,
-          "Node"       => host_name,
-          "Address"    => host_ip,
-          "Service"    => {}
+      def consul_service_document document
+        {
+          "Datacenter" => consul_datacenter(document),
+          "Node"       => document[:host],
+          "Address"    => document[:ipaddress],
+          "Service"    => {
+            "Port"    => document[:port].to_i,
+            "Service" => document[:path],
+            "Tags"    => document[:tags],
+            "ID"      => document[:path],
+          }
         }
-        service_name = consul_service_name(document,container_port)
-        service_tags = consul_service_tags(document,container_port)
-        service_id   = "%s/%s/%d" % [host_name,service_name,host_port]
-        service["Service"] = {
-          "Port"    => host_port,
-          "Service" => service_name,
-          "Tags"    => service_tags,
-          "ID"      => service_id
-        }
-        service
       end
 
       def api uri, payload, method = :post

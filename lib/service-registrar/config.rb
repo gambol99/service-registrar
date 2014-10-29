@@ -31,10 +31,8 @@ module ServiceRegistrar
           'environment:ENVIRONMENT',
           'environment:NAME',
           'environment:APP',
-          'container:HOSTNAME',
+          'service:PORT',
         ],
-        # Provide information on RUNNING containers
-        'running_only'    => true,
         # The method to use when disposing services
         'service_ttl'     => 'prune', # ttl
         # The backend uri for registering services in
