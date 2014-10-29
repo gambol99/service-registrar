@@ -26,5 +26,6 @@ Gem::Specification.new do |s|
   s.add_dependency 'optionscrapper'
   s.add_dependency 'statsd-ruby'
   s.add_dependency 'docker'
+  s.add_dependency 'httparty'
   s.add_dependency 'docker-api'
 end

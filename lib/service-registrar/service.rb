@@ -4,58 +4,57 @@
 #
 #  vim:ts=2:sw=2:et
 #
+require 'pp'
+
 module ServiceRegistrar
   module Service
     private
-    def host_services_document services, &block
-      yield prefix_hosts + '/' + hostname, {
-        :hostname => hostname,
-        :services => services
-      }
-    end
-
-    def container_documents &block
+    def service_documents &block
       containers do |container|
-        # step: if the container is not running and we are reporting
-        # running only, move on
-        next if !running?( container ) and running_only?
-        service_document container do |path,document|
-          yield path, document
+        # step: skip containers which are not running
+        next unless running? container
+        # step: split the container into it's services
+        service_port_document container do |document|
+          yield document[:path], document
         end
       end
     end
 
-    def service_document docker, &block
-      config      = extract_docker_config docker
-      info        = extract_docker_info docker
-      environment = extract_docker_environment docker
-      path        = service_path docker, environment
-      debug "service_document: generating the service path: #{path}"
+    def service_port_document container, &block
+      info        = container_info(container)
+      config      = container_config(container)
+      network     = info['NetworkSettings']
+      ports       = network['Ports'] || {}
+      environment = container_environment(container)
       service = {
-        :id          => docker.id,
-        :updated     => Time.now.to_i,
-        :host        => hostname,
-        :ipaddress   => ipaddress,
-        :environment => environment,
-        :image       => config['Image'],
-        :entrypoint  => config['Entrypoint'] || '',
-        :cpushares   => config['CpuShares'],
-        :memory      => config['Memory'],
-        :tags        => extract_docker_environment_tags( environment ),
-        :volumes     => info['Volumes'] || {},
-        :name        => info['Name'],
-        :running     => info['State']['Running'],
-        :docker_pid  => info['State']['Pid'] || 0,
-        :ports       => info['NetworkSettings']['Ports'] || {}
+        :id              => container.id,
+        :host            => hostname,
+        :ipaddress       => ipaddress,
+        :env             => container_environment(container),
+        :tags            => container_tags(container),
+        :name            => info['Name'],
+        :image           => config['Image'],
+        :docker_hostname => config['Hostname'],
       }
-      yield path, service if block_given?
+      service_defintion = nil
+      service_path_id   = nil
+      if ports.any?
+        ports.each_pair do |port,mapping|
+          port = service_port service, port, mapping
+          service_defintion = service.dup.merge(port)
+          # step: generate the service path
+          service_defintion[:path] = service_path service_defintion
+          yield service_defintion
+        end
+      else
+        # condition: the container does not expose any service ports
+        service_defintion = service.dup
+        service_defintion[:path] = service_path service_defintion
+        yield service_defintion
+      end
     end
 
-    def running? docker
-      extract_docker_info(docker)['State']['Running']
-    end
-
-    def service_path docker, environment
+    def service_path service
       # step: generate the path from the elements
       path = prefix_path.inject([]) { |paths,x|
         # step: ignore any illigal formated
@@ -68,45 +67,65 @@ module ServiceRegistrar
         element_value = elements[1]
         case element_type
         when 'environment'
-          paths << environment[element_value] || 'unknown'
+
+          paths << service[:env][element_value] || 'unknown'
         when 'string'
           paths << element_value
-        when 'container'
-          paths << extract_docker_config_item( docker, element_value )
-        when 'provider'
-          paths << extract_provider_info( element_value )
+        when 'service'
+          case element_value
+          when /^PORT$/
+            service_name = "SERVICE_#{service[:port]}_NAME"
+            paths << service[:env][service_name] if service[:env][service_name]
+            paths << service[element_value.downcase.to_sym] unless service[:env][service_name]
+          else
+            paths << service[element_value.downcase.to_sym]
+          end
         end
+        paths
       }.compact
       "#{prefix_services}/#{path.join('/')}"
     end
 
-    def extract_docker_info docker
-      docker.info
-    end
-
-    def extract_docker_environment_tags environment
-      ( environment['TAGS'] || "" ).split(',')
-    end
-
-    def extract_docker_environment docker
-      split_array( docker.info['Config']['Env'] || {} )
-    end
-
-    def extract_docker_config docker
-      docker.info['Config']
-    end
-
-    def extract_docker_config_item docker, key
-      extract_docker_config(docker)[key.downcase.capitalize]
-    end
-
-    def extract_provider_info key
-      case key
-      when 'HOSTNAME'
-        hostname
-      when 'IPADDRESS'
-        host_ipaddress
+    def service_port service, port, mapping
+      port_definition = parser_docker_port(port)
+      raise ArgumentError, "the port definition is invalid" unless port_definition
+      if mapping.nil?
+        port_definition[:port] = nil
+      else
+        port_mapping        = mapping.first
+        service[:ipaddress] = port_mapping['HostIp'] unless port_mapping['HostIp'] == '0.0.0.0'
+        service[:host_port] = port_mapping['HostPort']
       end
+      port_definition
+    end
+
+    def parser_docker_port port
+      return { :proto => $3, :port => $1 } if port =~ /^([0-9]+)($|\/(tcp|udp))/
+      warn "parser_docker_port: invalid port definition: #{port}"; nil
+    end
+
+    def running? container
+      container_info(container)['State']['Running']
+    end
+
+    def container_info container
+      container.info
+    end
+
+    def container_config container
+      container_info(container)['Config']
+    end
+
+    def container_network container
+      container_info(container)["NetworkSettings"]
+    end
+
+    def container_environment container
+      split_array( container_config(container)['Env'] || {} )
+    end
+
+    def container_tags container
+      ( container_environment(container)['Tags'] || '').split(',')
     end
 
     def service_time_to_live

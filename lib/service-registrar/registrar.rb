@@ -36,9 +36,9 @@ module ServiceRegistrar
           measure_time 'processing.ms' do
             available_services = {}
             # step: generate the services
-            container_documents do |path,document|
+            service_documents do |path,document|
               available_services[path] = document
-              debug "run: path: #{path}, ttl: #{service_time_to_live}, document: #{document}"
+              debug "run: path: #{path}, document: #{document}"
               # step: push the document into the backend
               measure_time 'services.set.ms' do
                 backend.service path, document, service_time_to_live
