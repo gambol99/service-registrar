@@ -30,8 +30,8 @@ module ServiceRegistrar
         'prefix_path'     => [
           'environment:ENVIRONMENT',
           'environment:NAME',
-          'environment:APP',
           'service:PORT',
+          'service:HOST_PORT',
         ],
         # The method to use when disposing services
         'service_ttl'     => 'prune', # ttl

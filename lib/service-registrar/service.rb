@@ -67,7 +67,6 @@ module ServiceRegistrar
         element_value = elements[1]
         case element_type
         when 'environment'
-
           paths << service[:env][element_value] || 'unknown'
         when 'string'
           paths << element_value

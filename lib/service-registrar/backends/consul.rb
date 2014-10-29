@@ -62,7 +62,7 @@ module ServiceRegistrar
         # step: we need to convert to consul services and grab the ids
         available_consul_services = {}
         available_services.each_pair do |path,document|
-          consul_service_document document do |service|
+          consul_services document do |service|
             service_id = service["Service"]["ID"]
             available_consul_services[service_id] = service
           end
@@ -109,7 +109,7 @@ module ServiceRegistrar
       end
 
       def consul_service_name document
-        port         = document[:port]
+        port         = document[:port] || 0
         service_name = document[:env]["SERVICE_#{port}_NAME"]
         service_name ||= document[:env]["SERVICE_NAME"]
         service_name = document[:image].split('/').last + "-#{port}" if service_name.nil?
