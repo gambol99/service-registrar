@@ -43,16 +43,15 @@ module ServiceRegistrar
           port = service_port service, port, mapping
           service_defintion = service.dup.merge(port)
           # step: generate the service path
-          service_path_id = service_path service_defintion
+          service_defintion[:path] = service_path service_defintion
+          yield service_defintion
         end
       else
         # condition: the container does not expose any service ports
-        service_path_id = service_path service_defintion
         service_defintion = service.dup
+        service_defintion[:path] = service_path service_defintion
+        yield service_defintion
       end
-      # step: insert the path
-      service_defintion[:path] = service_path_id
-      yield service_defintion
     end
 
     def service_path service

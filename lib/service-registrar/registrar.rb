@@ -38,18 +38,18 @@ module ServiceRegistrar
             # step: generate the services
             service_documents do |path,document|
               available_services[path] = document
-              debug "run: path: #{path}, ttl: #{service_time_to_live}, document: #{document}"
+              debug "run: path: #{path}, document: #{document}"
               # step: push the document into the backend
               measure_time 'services.set.ms' do
                 backend.service path, document, service_time_to_live
               end
             end
             # step: are we pruning the services
-            #if pruning?
-            #  measure_time 'services.pruning.ms' do
-            #    backend.pruning hostname, prefix_services, available_services
-            #  end
-            #end
+            if pruning?
+              measure_time 'services.pruning.ms' do
+                backend.pruning hostname, prefix_services, available_services
+              end
+            end
             # step: update the alive gauge
             gauge 'alive'
           end

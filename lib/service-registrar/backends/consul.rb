@@ -62,7 +62,7 @@ module ServiceRegistrar
         # step: we need to convert to consul services and grab the ids
         available_consul_services = {}
         available_services.each_pair do |path,document|
-          consul_services document do |service|
+          consul_service_document document do |service|
             service_id = service["Service"]["ID"]
             available_consul_services[service_id] = service
           end
@@ -108,6 +108,14 @@ module ServiceRegistrar
         document[:env]["CONSUL_DC"] || 'dc1'
       end
 
+      def consul_service_name document
+        port         = document[:port]
+        service_name = document[:env]["SERVICE_#{port}_NAME"]
+        service_name ||= document[:env]["SERVICE_NAME"]
+        service_name = document[:image].split('/').last + "-#{port}" if service_name.nil?
+        service_name
+      end
+
       def consul_service_document document
         {
           "Datacenter" => consul_datacenter(document),
@@ -115,7 +123,7 @@ module ServiceRegistrar
           "Address"    => document[:ipaddress],
           "Service"    => {
             "Port"    => document[:port].to_i,
-            "Service" => document[:path],
+            "Service" => consul_service_name(document),
             "Tags"    => document[:tags],
             "ID"      => document[:path],
           }
