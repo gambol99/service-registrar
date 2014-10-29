@@ -1,40 +1,66 @@
 Service-Registrar
 =================
 
-Docker Service Registration
-
-
 Services
 -----------------
 
 By default service documents are placed under the path
 
-    /[ENV:PROD]/[ENV:NAME]/[ENV:APP]/[DOCKER_ID]
+    /[ENV:ENVIRONMENT]/[ENV:APP]/[ENV:NAME]/[SERVICE:PORT]
 
-Example:
+Containers are broken up into service ports, creating a definition per port i.e
 
-    path: /services/prod/backend/etcd/0d520d265f52, ttl: 0,
-    document:
-        {
-            :id         => "0d520d265f5216cea9d070da511332a167bbff9c0d3d2099db6d93fe6367ea8a",
-            :updated    => 1413836623,
-            :host       => "mesos-slave101",
-            :ipaddress  => "10.0.1.201",
-            :image      => "etcd",
-            :domain     => "",
-            :entrypoint => ["/opt/etcd/bin/etcd"],
-            :tags       => [],
-            :cpushares  => 0,
-            :memory     => 0,
-            :volumes    => {},
-            :name       => "/focused_torvalds",
-            :running    => true,
-            :docker_pid => 4888,
-            :ports=>{
-                "4001/tcp"=>[{"HostIp"=>"0.0.0.0", "HostPort"=>"49153"}],
-                "7001/tcp"=>[{"HostIp"=>"0.0.0.0", "HostPort"=>"49154"}]
-            }
-        }
+    [jest@starfury bin]$ docker ps | grep etcd
+50ccf6e665e0        coreos/etcd:latest       "/opt/etcd/bin/etcd    46 hours ago        Up 46 hours         0.0.0.0:49155->4001/tcp, 0.0.0.0:49156->7001/tcp                                                                                                                                                                                           jovial_albattani
+
+Would create definitions;
+
+    {
+        :id=>"50ccf6e665e09b0d60445725bfa1993e0e185cc9b8c85af745fcace624f8ecf0",
+        :host=>"mesos-master",
+        :ipaddress=>"10.0.1.100",
+        :env=>{"APP"=>"etcd", "NAME"=>"etc", "ENVIRONMENT"=>"prod", "HOME"=>"/" },
+        :tags=>[],
+        :name=>"/jovial_albattani",
+        :image=>"coreos/etcd",
+        :docker_hostname=>"50ccf6e665e0",
+        :host_port=>"49156",
+        :proto=>"tcp",
+        :port=>"7001", :
+        path=>"/services/prod/etc/etcd/7001"
+    }
+
+    {
+        :id=>"50ccf6e665e09b0d60445725bfa1993e0e185cc9b8c85af745fcace624f8ecf0",
+        :host=>"mesos-master",
+        :ipaddress=>"10.0.1.100",
+        :env=>{"APP"=>"etcd", "NAME"=>"etc", "ENVIRONMENT"=>"prod", "HOME"=>"/" },
+        :tags=>[],
+        :name=>"/jovial_albattani",
+        :image=>"coreos/etcd",
+        :docker_hostname=>"50ccf6e665e0",
+        :host_port=>"49155",
+        :proto=>"tcp",
+        :port=>"4001",
+        :path=>"/services/prod/etc/etcd/4001"
+    }
+
+Under etcd keys of:
+
+    /services/prod/etc/etcd/4001
+    /services/prod/etc/etcd/7001
+
+Note; you can override the service port with a more readable name by injecting the environmental variable
+
+    SERVICE_<PORT>_NAME=""
+
+    i.e.
+
+    -e SERVICE_4001_NAME="etcd_clients"
+    -e SERVICE_7001_NAME="etcd_peers"
+    =
+    /services/prod/etc/etcd/etcd_clients
+    /services/prod/etc/etcd/etcd_peers
 
 Prune vs TTL
 -----------------
@@ -69,10 +95,8 @@ Configuration
           'environment:ENVIRONMENT',
           'environment:NAME',
           'environment:APP',
-          'container:HOSTNAME',
+          'service:PORT',
         ],
-        # Provide information on RUNNING containers
-        'running_only'    => true,
         # The method to use when disposing services
         'service_ttl'     => 'prune', # ttl
         # The backend uri for registering services in
@@ -124,7 +148,6 @@ Docker Testing
 	# docker run -d -e APP=redis -e NAME=master -P -e ENVIRONMENT=prod redis
 	# docker run -d -e APP=redis -e NAME=slave -P -e ENVIRONMENT=prod redis
 	# docker run -d -e APP=redis -e NAME=slave -P -e ENVIRONMENT=prod redis
-
 
 Contributing
 ------------
