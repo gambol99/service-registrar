@@ -32,6 +32,7 @@ module ServiceRegistrar
           'environment:NAME',
           'service:PORT',
           'service:HOST_PORT',
+          'service:HOSTNAME',
         ],
         # The method to use when disposing services
         'service_ttl'     => 'prune', # ttl
