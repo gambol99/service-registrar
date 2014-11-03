@@ -27,14 +27,14 @@ module ServiceRegistrar
       ports       = network['Ports'] || {}
       environment = container_environment(container)
       service = {
-        :id              => container.id,
-        :host            => hostname,
-        :ipaddress       => ipaddress,
-        :env             => container_environment(container),
-        :tags            => container_tags(container),
-        :name            => info['Name'],
-        :image           => config['Image'],
-        :docker_hostname => config['Hostname'],
+        :id        => container.id,
+        :host      => hostname,
+        :ipaddress => ipaddress,
+        :env       => container_environment(container),
+        :tags      => container_tags(container),
+        :name      => info['Name'],
+        :image     => config['Image'],
+        :hostname  => config['Hostname'],
       }
       service_defintion = nil
       service_path_id   = nil
