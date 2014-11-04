@@ -96,6 +96,7 @@ Configuration
           'environment:NAME',
           'environment:APP',
           'service:PORT',
+          'service:HOSTNAME',
         ],
         # The method to use when disposing services
         'service_ttl'     => 'prune', # ttl
