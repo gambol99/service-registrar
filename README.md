@@ -6,7 +6,7 @@ Services
 
 By default service documents are placed under the path
 
-    /[ENV:ENVIRONMENT]/[ENV:APP]/[ENV:NAME]/[SERVICE:PORT]
+    /[ENV:ENVIRONMENT]/[ENV:APP]/[ENV:NAME]/[SERVICE:PORT]/[SERVICE:HOSTPORT]/[SERVICE:HOSTNAME]
 
 Containers are broken up into service ports, creating a definition per port i.e
 
