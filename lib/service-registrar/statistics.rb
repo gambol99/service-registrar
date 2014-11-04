@@ -10,7 +10,7 @@ module ServiceRegistrar
       info "statistics_runner: starting the statistics running thread"
       @statistics_dump ||= Thread.new do
         wake(10000) do
-          info "statistics dump: #{statistics}"
+          debug "statistics dump: #{statistics}"
         end
         warn "statistics_runner: thread ended"
       end
