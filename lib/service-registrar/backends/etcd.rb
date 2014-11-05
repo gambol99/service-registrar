@@ -8,17 +8,13 @@ module ServiceRegistrar
   module Backends
     class Etcd < Backend
       require 'etcd'
-
       def service path, document, time_to_live
         api_operation do
           # step: check if the path already exists and if not, set it
           unless etcd.exists? path
-            info "service: path: #{path}, service: #{document}"
-            set_options = {
-              :value     => document.to_json,
-              :recursive => true
-            }
+            set_options = { :value => document.to_json }.merge( default_options )
             set_options[:ttl] = time_to_live if time_to_live > 0
+            info "service: path: #{path}, service: #{document}, options: #{default_options}"
             etcd.set path, set_options
           end
         end
@@ -26,7 +22,7 @@ module ServiceRegistrar
 
       def pruning hostname, services_path, available_services
         # step: get a current list of services we are running
-        #debug "pruning: hostname: #{hostname}, services_path: #{services_path}, available_services: #{available_services}"
+        debug "pruning: hostname: #{hostname}, services_path: #{services_path}, available_services: #{available_services}"
         advertised_services = advertised_paths hostname, services_path
         #debug "pruning: advertised_services: #{advertised_services}"
         # step: deduct what we have from what we have advertised
@@ -43,13 +39,13 @@ module ServiceRegistrar
       private
       def delete path
         api_operation do
-          etcd.delete path, recursive: true
+          etcd.delete path, default_options
         end
       end
 
       def advertised_paths hostname, services_path = '/services'
         etcd_services_paths(services_path).select do |path,host|
-          debug "path: #{path}, hostname: #{hostname}, host: #{host}"
+          debug "advertised_paths: path: #{path}, hostname: #{hostname}, host: #{host}"
           host == hostname
         end
       end
@@ -77,6 +73,13 @@ module ServiceRegistrar
 
       def etcd
         @etcd ||= connection
+      end
+
+      def default_options
+        {
+          :recursive => true,
+          :timeout   => 10,
+        }
       end
 
       def connection
