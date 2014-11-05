@@ -123,7 +123,7 @@ Docker Build & Run
     # docker run -d -P
         -e HOST=$HOSTNAME \
         -e IPADDRESS=$PRIVATE_IP_ADDRESS \
-        -e BACKEND="etcd://<IP>:<PORT>"
+        -e BACKEND="etcd://<IP>:<PORT>" \
         -e DOCKER_SOCKET=/var/sockets/docker.socket \
         -v /var/run:/var/sockets service-registrar
 
@@ -138,7 +138,7 @@ Docker Testing
 	# docker run -d -P \
         -e HOST=$HOSTNAME \
         -e IPADDRESS=$IPADDRESS \
-        -e BACKEND="etcd://${ETCD_HOST}:${ETCD_PORT}"
+        -e BACKEND="etcd://${ETCD_HOST}:${ETCD_PORT}" \
         -e DOCKER_SOCKET=/var/sockets/docker.sock \
         -v /var/run:/var/sockets service-registrar
 
