@@ -10,10 +10,11 @@ require 'docker'
 module ServiceRegistrar
   module DockerAPI
     def containers
+      raise ArgumentError, 'you have not supplied a block' unless block_given?
       # step: ensure the docker socket
       set_docker_socket
       ::Docker::Container.all.each do |docker|
-        yield ::Docker::Container.get(docker.id)
+        yield ::Docker::Container.get( docker.id )
       end
     end
 

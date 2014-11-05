@@ -65,7 +65,7 @@ Note; you can override the service port with a more readable name by injecting t
 Prune vs TTL
 -----------------
 
-Service documents are expired either by TTLs or via pruing. By default the TTL of a document is 12 seconds, with each interval resetting the document ttl. Personally, I never liked the idea; if your using it to build out some load balancer etc; a registration process failure could timeout the documents/service and end up with a empty load balance config. Pruning is the other option, service document do not have a TTL, on every iteration, the advertised services in the registry is compared to what we JUST found and if there's anything which shouldn't be there, it's removed - the trade off bring I'd rather have old config than no config.
+Service documents are expired either by TTLs or via pruning. By default the TTL of a document is 12 seconds, each interval iteration resetting the document ttl. Personally, I don't like the idea of using TTLs, if your using the service data to build out a load balancer config, the process failing/dying could timeout the documents/service and end up with a empty load balance config. Pruning is the other option, service document do not have a TTL associated, on every iteration the currently running services are collected and checked against those which are advertised in the registry. Anything which should no longer be there is removed and the rest left unaltered.
 
 Configuration
 -----------------
@@ -74,38 +74,36 @@ Configuration
 
     def default_configuration
       {
-        'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
-        'interval'        => env('INTERVAL','3000').to_i,
-        'ttl'             => env('TTL','12000').to_i,
-        'log'             => env('LOGFILE',STDOUT),
-        # The logging level
-        'loglevel'        => env('LOGLEVEL','info'),
-        # The hostname to use when registering services, should be the docker host
-        'hostname'        => env('HOST', %x(hostname -f).chomp ),
-        # The ip address to use when advertising the service - namely the ip address of the docker host
-        'ipaddress'       => env('IPADDRESS', get_host_ipaddress ),
-        # The prefix to use when sending events/metrics to statsd
-        'prefix_stats'    => env('PREFIX_STATSD','registrar-service'),
-        # The prefix to use when adding the services information - directory backend only
-        'prefix_services' => env('PREFIX_SERVICES','/services'),
-        # The prefix to use when adding the hosts information - directory backend only
-        'prefix_hosts'    => env('PREFIX_HOSTS','/hosts'),
-        # This is used when adding to a directoy service, like etcd or zookeeper
-        'prefix_path'     => [
-          'environment:ENVIRONMENT',
-          'environment:NAME',
-          'environment:APP',
-          'service:PORT',
-          'service:HOSTNAME',
-        ],
-        # The method to use when disposing services
-        'service_ttl'     => 'prune', # ttl
-        # The backend uri for registering services in
-        'backend'  => env('BACKEND','etcd://localhost:4001'),
-      }
+          # the path of the docker socker
+          'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
+          # the interval between service run
+          'interval'        => env('INTERVAL','3000').to_i,
+          # the time in seconds for TTLs on services - used if service_ttl == 'ttl'
+          'ttl'             => env('TTL','12000').to_i,
+          # the place to write logs, default to stdout
+          'log'             => env('LOGFILE',STDOUT),
+          # The logging level
+          'log_level'       => env('LOGLEVEL','info'),
+          # The hostname to use when registering services, should be the docker host
+          'hostname'        => env('HOST', %x(hostname -f).chomp ),
+          # The ip address to use when advertising the service - namely the ip address of the docker host
+          'ipaddress'       => env('IPADDRESS', get_host_ipaddress ),
+          # The prefix to use when sending events/metrics to statsd
+          'prefix_stats'    => env('PREFIX_STATSD','registrar-service'),
+          # The prefix to use when adding the services information - directory backend only
+          'prefix_services' => env('PREFIX_SERVICES','/services'),
+          # The prefix to use when adding the hosts information - directory backend only
+          'prefix_hosts'    => env('PREFIX_HOSTS','/hosts'),
+          # This is used when adding to a directoy service, like etcd or zookeeper
+          'prefix_path'     => %w(environment:ENVIRONMENT environment:NAME service:PORT service:HOST_PORT service:HOSTNAME),
+          # The method to use when disposing services
+          'service_ttl'     => 'prune', # ttl
+          # The backend uri for registering services in
+          'backend'  => env('BACKEND','etcd://localhost:4001'),
+        }
     end
 
-Backends:
+Backend's:
 ---------
 
 The backend or registry is configured using a simple uri - from the command line or from the BACKEND environment variable

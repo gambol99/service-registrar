@@ -28,11 +28,13 @@ module ServiceRegistrar
     end
 
     def measure_time(key)
+      response = nil
       start_time = Time.now
-      yield if block_given?
+      response = yield if block_given?
       time_taken = Time.now - start_time
       statistics[key] = '%.3f' % [(time_taken * 1000)]
       statsd.timing(key, time_taken) if statsd
+      response
     end
 
     private

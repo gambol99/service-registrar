@@ -9,46 +9,41 @@ module ServiceRegistrar
     class Zookeeper < Backend
       require 'zookeeper'
 
-      def set(path, value, ttl = nil)
+      def service(path, document, ttl)
         api_operation do
-          # step: include the ttl in the object
-          value[:ttl] = ttl
-          # step: we need to make sure the path exists
-          ensure_pathway path
-          # step: set the value
-          zookeeper.set path: path, data: value
+          debug "service: path: #{path}, document: #{document}"
+          # step: zookeeper does not support a recursive set, we need to ensure the path
+          ensure_path path
+          # step: set the key/value
+          zoo.set path: path, data: document
         end
       end
 
-      def paths(root_path = default_root_path)
+      def pruning(hostname, services_path, available_services)
 
-      end
-
-      def delete(path)
-        api_operation do
-          zookeeper.delete path: path
-        end
       end
 
       private
-      def ensure_pathway(path)
-        root = ''
-        zookeeper_path = path.gsub(/^\/+/, '')
-        zookeeper_path.split('/').each do |x|
-          root << "/#{x}"
-          children = zookeeper.get_children(path: root)
-          zookeeper.create path: root if children[:children].nil?
+      def delete(path)
+        api_operation do
+          debug "delete: path: #{path}"
+          zoo.delete path: path
         end
       end
 
-      def zookeeper
-        debug 'heloo from zookeeper'
-        @zookeeper ||= nil
-        @zookeeper = connection if @zookeeper.nil? or !@zookeeper.connected?
+      def ensure_path(path)
+        debug "ensure_path: #{path}"
+        File.dirname(path).split('/').inject([]) do |root,element|
+          cursor = root.join('/')
+          # step: check if the cursor path exists
+          zoo.create(path: cursor) if zoo.get_children(path: cursor).nil?
+          root << element
+          root
+        end
       end
 
-      def connection
-        Zookeeper.new config['uri']
+      def zoo
+        @zookeeper ||= ::Zookeeper.new(config['uri'])
       end
     end
   end

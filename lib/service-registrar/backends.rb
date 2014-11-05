@@ -1,9 +1,3 @@
-#
-#   Author: Rohith
-#   Date: 2014-10-10 20:53:36 +0100 (Fri, 10 Oct 2014)
-#
-#  vim:ts=2:sw=2:et
-#
 require 'backend'
 require 'backends/zookeeper'
 require 'backends/etcd'
@@ -11,21 +5,29 @@ require 'backends/consul'
 
 module ServiceRegistrar
   module Backends
-    def backend?(uri)
-      uri[/^(consul|etcd|zoo):\/\//] ? true : false
+    private
+    def backend
+      @backend ||= nil
+      unless @backend
+        info "backend: backend: #{settings['backend']}, interval: #{interval}"
+        @backend = load_backend settings['backend'], settings
+      end
+      @backend
     end
 
-    private
+    def backend?(uri)
+      ( uri =~ /^(etcd|consul):\/\// ) ? true : false
+    end
+
     def load_backend(uri, config)
+      raise StandardError, "the backend: #{url} is not presently supported" unless backend? uri
       case uri
-        when /^zoo:/
+        when /^zoo/
           instance_backend('zookeeper', uri, config)
-        when /^etcd:/
+        when /^etcd/
           instance_backend('etcd', uri, config)
-        when /^consul:/
+        when /^consul/
           instance_backend('consul', uri, config)
-        else
-          raise ArgumentError, "the backend: #{url} is not supported"
       end
     end
 

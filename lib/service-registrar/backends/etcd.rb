@@ -27,7 +27,7 @@ module ServiceRegistrar
         #debug "pruning: advertised_services: #{advertised_services}"
         # step: deduct what we have from what we have advertised
         bad_services = advertised_services.keys - available_services.keys
-        # step: do we have any services that should't be there?
+        # step: do we have any services that should not be there?
         unless bad_services.empty?
           bad_services.each do |bad_service_path|
             info "pruning: deleting the bad service: #{bad_service_path}"
@@ -37,10 +37,36 @@ module ServiceRegistrar
       end
 
       private
+      def get(path, options = {})
+        api_operation do
+          debug "get: path: #{path}, options: #{options}"
+          etcd.get path, options
+        end
+      end
+
       def delete(path)
         api_operation do
+          debug "delete: path: #{path}"
           etcd.delete path, default_options
         end
+      end
+
+      #def delete_path(path)
+      #  debug "delete_path: deleting the service path: #{path}"
+      #  entry_path = path
+      #  loop do
+      #    entry = get(entry_path)
+      #    if entry.node.dir and entry.node.children >= 1
+      #      debug "delete_path: breaking out: #{node_path}"
+      #      break
+      #    end
+      #    delete(entry_path)
+      #    node_path = parent_directory(entry_path)
+      #  end
+      #end
+
+      def parent_directory(path)
+        path.split('/')[0..-2].join('/')
       end
 
       def advertised_paths(hostname, services_path = '/services')

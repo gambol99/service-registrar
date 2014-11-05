@@ -12,9 +12,9 @@ module ServiceRegistrar
       class << self
         attr_accessor :logger
 
-        def init(log, loglevel = ::Logger::DEBUG)
+        def init(log, log_level = ::Logger::INFO)
           self.logger = ::Logger.new(log)
-          self.logger.level = loglevel
+          self.logger.level = log_level
         end
 
         def method_missing(m,*args,&block)

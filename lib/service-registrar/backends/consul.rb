@@ -5,7 +5,7 @@
 #  vim:ts=2:sw=2:et
 #
 
-# Environment Varibles
+# Environment Variables
 #
 #   CONSUL_DC                   : the consul datacenter
 #   SERVICE_<PORT>_NAME         : the service name associated to the port
@@ -74,10 +74,10 @@ module ServiceRegistrar
           bad_services.each do |id|
             info "pruning: service id: #{id} should not be advertised"
             service_removal = {
-                'Node' => advertised['Node']['Node'],
-                'Address' => advertised['Node']['Address'],
-                'Datacenter' => 'dc1',
-                'ServiceID' => id
+              'Node'       => advertised['Node']['Node'],
+              'Address'    => advertised['Node']['Address'],
+              'Datacenter' => 'dc1',
+              'ServiceID'  => id
             }
             deregister_service service_removal
           end
@@ -118,15 +118,15 @@ module ServiceRegistrar
 
       def consul_service_document(document)
         {
-          'Datacenter' => consul_datacenter(document),
-          'Node' => document[:host],
-          'Address' => document[:ipaddress],
-          'Service' => {
-              'Port' => document[:port].to_i,
-              'Service' => consul_service_name(document),
-              'Tags' => document[:tags],
-              'ID' => document[:path],
-          }
+            'Datacenter' => consul_datacenter(document),
+            'Node'       => document[:host],
+            'Address' => document[:ipaddress],
+            'Service' => {
+                'Port'    => document[:port].to_i,
+                'Service' => consul_service_name(document),
+                'Tags'    => document[:tags],
+                'ID'      => document[:path],
+            }
         }
       end
 

@@ -4,8 +4,8 @@
 #
 #  vim:ts=2:sw=2:et
 #
-require 'logging'
-require 'errors'
+require 'misc/logging'
+require 'misc/errors'
 
 module ServiceRegistrar
   class Backend

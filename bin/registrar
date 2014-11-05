@@ -36,10 +36,10 @@ module ServiceRegistrar
     def parser
       parser ||= OptionScrapper.new do |o|
         o.on( '-c CONFIG', '--config CONFIG', 'the configuration file for the registration service' ) { |x| options['config'] = x }
-        o.on( '-d', '--debug', 'switch on debug logging') { options['loglevel'] = 'debug' }
+        o.on( '-d', '--debug', 'switch on debug logging') { options['log_level'] = 'debug' }
         o.command :run, 'start daemon service and push services to the backend' do
           o.on( '-H HOSTNAME', '--hostname', 'the hostname to add when pushing services' ) { |x| options['hostname'] = x }
-          o.on( '-a IPADDRESS', '--addr IPADDRESS', 'the ipaddress to advertise in services' ) { |x| options['ipaddress'] = x }
+          o.on( '-a IPADDRESS', '--addr IPADDRESS', 'the ip address to advertise in services' ) { |x| options['ipaddress'] = x }
           o.on( '-B BACKEND', '--backend BACKEND', 'specify the service discovery backend' ) { |x| options['backend'] = x }
           o.on( '-i MS', '--interval MS', 'specify the interval between pushing services' ) { |x| options['interval'] = x.to_i }
           o.on( '-t MS', '--ttl MS', 'the time to live for services in service discovery, in ms') { |x| options['ttl'] = x.to_i }
