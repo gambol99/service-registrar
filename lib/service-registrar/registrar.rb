@@ -24,7 +24,7 @@ module ServiceRegistrar
     include ServiceRegistrar::Service
     include ServiceRegistrar::Errors
 
-    def initialize config = {}
+    def initialize(config = {})
       load_configuration config
     end
 
@@ -57,7 +57,7 @@ module ServiceRegistrar
           error "run: backend failure, error: #{e.message.chomp}"
           increment 'backend.failures'
         rescue SystemExit => e
-          info "run: received a SystemExit exception"
+          info 'run: received a SystemExit exception'
           exit 1
         rescue SignalException => e
           error "run: received a SignalException exception, #{e.message}"

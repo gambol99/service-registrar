@@ -12,8 +12,8 @@ module ServiceRegistrar
       class << self
         attr_accessor :logger
 
-        def init log, loglevel = ::Logger::DEBUG
-          self.logger = ::Logger.new( log )
+        def init(log, loglevel = ::Logger::DEBUG)
+          self.logger = ::Logger.new(log)
           self.logger.level = loglevel
         end
 

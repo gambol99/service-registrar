@@ -7,33 +7,32 @@
 module ServiceRegistrar
   module Statistics
     def statistics_runner
-      info "statistics_runner: starting the statistics running thread"
+      info 'statistics_runner: starting the statistics running thread'
       @statistics_dump ||= Thread.new do
         wake(10000) do
           debug "statistics dump: #{statistics}"
         end
-        warn "statistics_runner: thread ended"
+        warn 'statistics_runner: thread ended'
       end
     end
 
-    def increment key, by = 1
+    def increment(key, by = 1)
       statistics[key] ||= 0
-      statistics[key] += 1
+      statistics[key] += by
       statsd.increment key if statsd
     end
 
-    def gauge key, value = 1
+    def gauge(key, value = 1)
       statistics[key] = value
-      statsd.gauge( key, value ) if statsd
+      statsd.gauge(key, value) if statsd
     end
 
-    def measure_time key
+    def measure_time(key)
       start_time = Time.now
-      response   = yield if block_given?
+      yield if block_given?
       time_taken = Time.now - start_time
-      statistics[key] = "%.3f" % [ (time_taken * 1000) ]
-      statsd.timing( key, time_taken ) if statsd
-      response
+      statistics[key] = '%.3f' % [(time_taken * 1000)]
+      statsd.timing(key, time_taken) if statsd
     end
 
     private

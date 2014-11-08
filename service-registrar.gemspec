@@ -8,11 +8,11 @@ $:.unshift File.join(File.dirname(__FILE__),'.','lib/service-registrar' )
 require 'version'
 
 Gem::Specification.new do |s|
-  s.name        = "service-registrar"
+  s.name        = 'service-registrar'
   s.version     = ServiceRegistrar::VERSION
   s.platform    = Gem::Platform::RUBY
   s.date        = '2014-10-10'
-  s.authors     = ["Rohith Jayawardene"]
+  s.authors     = ['Rohith Jayawardene']
   s.email       = 'gambol99@gmail.com'
   s.homepage    = 'https://github.com/gambol99/service-registrar'
   s.summary     = %q{Docker Service Registration}

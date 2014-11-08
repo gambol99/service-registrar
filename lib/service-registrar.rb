@@ -5,7 +5,8 @@
 #  vim:ts=2:sw=2:et
 #
 $:.unshift File.join(File.dirname(__FILE__),'.','./service-registrar')
-require 'registrar'
+# noinspection RubyResolve
+require File.expand_path(registrar)
 
 module ServiceRegistrar
   ROOT = File.expand_path( File.dirname( __FILE__ ) )
@@ -21,7 +22,7 @@ module ServiceRegistrar
     ServiceRegistrar::VERSION
   end
 
-  def self.new options
+  def self.new(options)
     ServiceRegistrar::Registrar.new options
   end
 end

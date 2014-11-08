@@ -13,15 +13,15 @@ module ServiceRegistrar
       'debug' => ::Logger::DEBUG,
     }
 
-    def split_array list, symbol = '='
-      list.inject({}) do |map,element|
+    def split_array(list, symbol = '=')
+      list.inject({}) do |map, element|
         elements = element.split symbol
         map[elements.first] = elements.last if elements.size > 0
         map
       end
     end
 
-    def env key, default
+    def env(key, default)
       return default unless ENV[key]
       # step: check if the variable is empty
       if ENV[key].empty?
@@ -33,22 +33,22 @@ module ServiceRegistrar
       end
     end
 
-    def wake milli, &block
+    def wake(milli, &block)
       loop do
-        sleep ( milli / 1000 )
+        sleep (milli / 1000)
         yield
       end
     end
 
-    def uri_port uri
+    def uri_port(uri)
       URI(uri).port
     end
 
-    def uri_hostname uri
+    def uri_hostname(uri)
       URI(uri).hostname
     end
 
-    def loglevel level
+    def loglevel(level)
       LogLevels[level] || ::Logger::DEBUG
     end
 
@@ -56,7 +56,7 @@ module ServiceRegistrar
       @host_ipaddress ||= %x(hostname --ip-address).chomp
     end
 
-    def required_settings list, supplied
+    def required_settings(list, supplied)
       list.each { |x| raise ArgumentError, "you've not specified the #{x} option" unless supplied.has_key? x }
     end
   end

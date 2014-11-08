@@ -9,7 +9,7 @@ module ServiceRegistrar
     class Zookeeper < Backend
       require 'zookeeper'
 
-      def set path, value, ttl = nil
+      def set(path, value, ttl = nil)
         api_operation do
           # step: include the ttl in the object
           value[:ttl] = ttl
@@ -20,29 +20,29 @@ module ServiceRegistrar
         end
       end
 
-      def paths root_path = default_root_path
+      def paths(root_path = default_root_path)
 
       end
 
-      def delete path
+      def delete(path)
         api_operation do
           zookeeper.delete path: path
         end
       end
 
       private
-      def ensure_pathway path
+      def ensure_pathway(path)
         root = ''
-        zookeeper_path = path.gsub(/^\/+/,'')
+        zookeeper_path = path.gsub(/^\/+/, '')
         zookeeper_path.split('/').each do |x|
           root << "/#{x}"
-          children = zookeeper.get_children( path: root )
+          children = zookeeper.get_children(path: root)
           zookeeper.create path: root if children[:children].nil?
         end
       end
 
       def zookeeper
-        debug "heloo from zookeeper"
+        debug 'heloo from zookeeper'
         @zookeeper ||= nil
         @zookeeper = connection if @zookeeper.nil? or !@zookeeper.connected?
       end

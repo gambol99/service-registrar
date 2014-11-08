@@ -15,13 +15,13 @@ module ServiceRegistrar
 
     attr_reader :config, :uri
 
-    def initialize uri, config
-      @uri    = uri
+    def initialize(uri, config)
+      @uri = uri
       @config = config
     end
 
     protected
-    def api_operation &block
+    def api_operation
       begin
         yield
       rescue Exception => e
@@ -30,12 +30,12 @@ module ServiceRegistrar
       end
     end
 
-    def service hostname, services_path, available_services
-      raise Exception, "backend: the service method has not been defined"
+    def service(hostname, services_path, available_services)
+      raise Exception, 'backend: the service method has not been defined'
     end
 
-    def pruning available_service, service_path
-      raise Exception, "backend: the pruning method has not been defined"
+    def pruning(available_service, service_path)
+      raise Exception, 'backend: the pruning method has not been defined'
     end
 
     def default_root_path

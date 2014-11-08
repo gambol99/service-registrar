@@ -27,13 +27,7 @@ module ServiceRegistrar
         # The prefix to use when adding the hosts information - directory backend only
         'prefix_hosts'    => env('PREFIX_HOSTS','/hosts'),
         # This is used when adding to a directoy service, like etcd or zookeeper
-        'prefix_path'     => [
-          'environment:ENVIRONMENT',
-          'environment:NAME',
-          'service:PORT',
-          'service:HOST_PORT',
-          'service:HOSTNAME',
-        ],
+        'prefix_path'     => %w(environment:ENVIRONMENT environment:NAME service:PORT service:HOST_PORT service:HOSTNAME),
         # The method to use when disposing services
         'service_ttl'     => 'prune', # ttl
         # The backend uri for registering services in
@@ -74,7 +68,7 @@ module ServiceRegistrar
     private
     # method: loads the default configuration, merges the config file, the environment file
     # and this the user defined options to produce the final service config
-    def load_configuration config
+    def load_configuration(config)
       # step: start by loading the default configuration
       @configuration = default_configuration
       # step: load the configuration file if we have one
@@ -91,10 +85,10 @@ module ServiceRegistrar
       validate_configuration @configuration
     end
 
-    def validate_configuration configuration
-      debug "validate_configuration: validating the configuration"
+    def validate_configuration(configuration)
+      debug 'validate_configuration: validating the configuration'
       # step: check we have valid service method
-      raise ArgumentError, "invalid service ttl method" unless service_method? configuration['service_ttl']
+      raise ArgumentError, 'invalid service ttl method' unless service_method? configuration['service_ttl']
       # step: check the backend configuration
       raise ArgumentError, "the backend: #{backend} does not exits" unless backend? configuration['backend']
       # step: check the docker socket
@@ -104,23 +98,23 @@ module ServiceRegistrar
       configuration
     end
 
-    def validate_docker configuration
+    def validate_docker(configuration)
       %w(exists socket readable writable).each do |x|
-        unless File.send("#{x}?".to_sym, configuration['docker'] )
+        unless File.send("#{x}?".to_sym, configuration['docker'])
           raise ArgumentError, "the docker socket file: #{configuration['docker']} does or is not #{x}"
         end
       end
     end
 
-    def service_method? method
+    def service_method?(method)
       method[/^(ttl|prune)$/]
     end
 
-    def load_environment_file filename = '/etc/environment'
+    def load_environment_file(filename = '/etc/environment')
       config = {}
       info "load_environment: checking for a environment file: #{filename}"
       if File.file? filename and File.readable? filename
-        parse_environment_file filename do |key,value|
+        parse_environment_file filename do |key, value|
           config[key] = value
           debug "adding environment var: #{key} value: #{value}"
           config[key.downcase] = value
@@ -129,15 +123,15 @@ module ServiceRegistrar
       config
     end
 
-    def parse_environment_file filename, &block
-      File.open( filename ).each do |x|
+    def parse_environment_file(filename)
+      File.open(filename).each do |x|
         next unless x =~ /^(.*)=(.*)$/
         yield $1, $2
       end
     end
 
-    def load_configuration_file filename
-      ( filename ) ? ::YAML.load(File.read(filename)) : {}
+    def load_configuration_file(filename)
+      (filename) ? ::YAML.load(File.read(filename)) : {}
     end
   end
 end

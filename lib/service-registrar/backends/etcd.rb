@@ -8,11 +8,11 @@ module ServiceRegistrar
   module Backends
     class Etcd < Backend
       require 'etcd'
-      def service path, document, time_to_live
+      def service(path, document, time_to_live)
         api_operation do
           # step: check if the path already exists and if not, set it
           unless etcd.exists? path
-            set_options = { :value => document.to_json }.merge( default_options )
+            set_options = {:value => document.to_json}.merge(default_options)
             set_options[:ttl] = time_to_live if time_to_live > 0
             info "service: path: #{path}, service: #{document}, options: #{default_options}"
             etcd.set path, set_options
@@ -20,7 +20,7 @@ module ServiceRegistrar
         end
       end
 
-      def pruning hostname, services_path, available_services
+      def pruning(hostname, services_path, available_services)
         # step: get a current list of services we are running
         debug "pruning: hostname: #{hostname}, services_path: #{services_path}, available_services: #{available_services}"
         advertised_services = advertised_paths hostname, services_path
@@ -28,7 +28,7 @@ module ServiceRegistrar
         # step: deduct what we have from what we have advertised
         bad_services = advertised_services.keys - available_services.keys
         # step: do we have any services that should't be there?
-        if !bad_services.empty?
+        unless bad_services.empty?
           bad_services.each do |bad_service_path|
             info "pruning: deleting the bad service: #{bad_service_path}"
             delete bad_service_path
@@ -37,37 +37,37 @@ module ServiceRegistrar
       end
 
       private
-      def delete path
+      def delete(path)
         api_operation do
           etcd.delete path, default_options
         end
       end
 
-      def advertised_paths hostname, services_path = '/services'
-        etcd_services_paths(services_path).select do |path,host|
+      def advertised_paths(hostname, services_path = '/services')
+        etcd_services_paths(services_path).select do |path, host|
           debug "advertised_paths: path: #{path}, hostname: #{hostname}, host: #{host}"
           host == hostname
         end
       end
 
-      def etcd_services_paths root_path = default_root_path
+      def etcd_services_paths(root_path = default_root_path)
         api_operation do
-          etcd_paths recursive_nodes( root_path )
+          etcd_paths recursive_nodes(root_path)
         end
       end
 
-      def etcd_paths node, list = {}
+      def etcd_paths(node, list = {})
         if node.dir
-          node.children.each { |x| etcd_paths(x,list) } if node.children
+          node.children.each { |x| etcd_paths(x, list) } if node.children
         else
           list[node.key] = JSON.parse(node.value)['host']
         end
         list
       end
 
-      def recursive_nodes root
+      def recursive_nodes(root)
         api_operation do
-          etcd.get( root , :recursive => true ).node
+          etcd.get(root, :recursive => true).node
         end
       end
 

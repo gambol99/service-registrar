@@ -9,11 +9,11 @@ require 'docker'
 
 module ServiceRegistrar
   module DockerAPI
-    def containers &block
+    def containers
       # step: ensure the docker socket
       set_docker_socket
       ::Docker::Container.all.each do |docker|
-        yield ::Docker::Container.get( docker.id )
+        yield ::Docker::Container.get(docker.id)
       end
     end
 
@@ -23,7 +23,7 @@ module ServiceRegistrar
         @socket = "unix://#{settings['docker']}"
         info "set_docker_socket: setting the docker socket: #{@socket}"
         ::Docker.url = @socket
-        info "set_docker_socket: socket set"
+        info 'set_docker_socket: socket set'
       end
     end
   end
