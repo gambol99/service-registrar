@@ -14,7 +14,7 @@ RUN sudo gem install -V docker docker-api httparty etcd statsd-ruby zookeeper op
 ADD lib /opt/registrar/lib
 ADD bin /opt/registrar/bin
 ADD docker/config/config.yml /opt/registrar/config.yml
-ADD docker/config/registar.conf /etc/supervisor/conf.d/registrar.conf
+ADD docker/config/registrar.conf /etc/supervisor/conf.d/registrar.conf
 ENV APP registrar
 ENV ENVIRONMENT prod
 ENV NAME registrar-service

@@ -8,9 +8,9 @@ require 'logger'
 
 module ServiceRegistrar
   module Utils
-    LogLevels = {
-      'info'  => ::Logger::INFO,
-      'debug' => ::Logger::DEBUG,
+    LOG_LEVELS = {
+      :info  => ::Logger::INFO,
+      :debug => ::Logger::DEBUG,
     }
 
     def split_array(list, symbol = '=')
@@ -33,7 +33,7 @@ module ServiceRegistrar
       end
     end
 
-    def wake(milli, &block)
+    def wake(milli)
       loop do
         sleep (milli / 1000)
         yield
@@ -48,8 +48,8 @@ module ServiceRegistrar
       URI(uri).hostname
     end
 
-    def loglevel(level)
-      LogLevels[level] || ::Logger::DEBUG
+    def log_level(level)
+      LOG_LEVELS[level.to_sym] || ::Logger::DEBUG
     end
 
     def get_host_ipaddress

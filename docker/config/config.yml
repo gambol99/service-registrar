@@ -1,17 +1,10 @@
 docker: /var/run/docker.sock
-daemonize: false
 interval: 5000
-ttl: 12000
+ttl: 10000
 path:
 - string:services
 - environment:ENVIRONMENT
 - environment:APP
 - environment:NAME
 - container:HOSTNAME
-backend: etcd
-backends:
-  zookeeper:
-    uri: zk://localhost:2181
-  etcd:
-    host: 10.0.1.100
-    port: 4001
+backend: 'etcd://localhost:4001'

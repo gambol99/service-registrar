@@ -5,18 +5,17 @@
 #  vim:ts=2:sw=2:et
 #
 $:.unshift File.join(File.dirname(__FILE__),'.','./service-registrar')
-# noinspection RubyResolve
 require 'registrar'
 
 module ServiceRegistrar
-  ROOT = File.expand_path( File.dirname( __FILE__ ) )
+  ROOT = File.expand_path(File.dirname(__FILE__))
 
   require "#{ROOT}/service-registrar/version"
 
   autoload :Version,  "#{ROOT}/service-registrar/version"
-  autoload :Utils,    "#{ROOT}/service-registrar/utils"
-  autoload :Logging,  "#{ROOT}/service-registrar/logging"
-  autoload :Errors,   "#{ROOT}/service-registrar/errors"
+  autoload :Utils,    "#{ROOT}/service-registrar/misc/utils"
+  autoload :Logging,  "#{ROOT}/service-registrar/misc/logging"
+  autoload :Errors,   "#{ROOT}/service-registrar/misc/errors"
 
   def self.version
     ServiceRegistrar::VERSION

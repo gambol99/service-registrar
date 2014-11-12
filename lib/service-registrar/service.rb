@@ -4,8 +4,6 @@
 #
 #  vim:ts=2:sw=2:et
 #
-require 'pp'
-
 module ServiceRegistrar
   module Service
     private
@@ -26,14 +24,14 @@ module ServiceRegistrar
       network = info['NetworkSettings']
       ports = network['Ports'] || {}
       service = {
-          :id => container.id,
-          :host => hostname,
-          :ipaddress => ipaddress,
-          :env => container_environment(container),
-          :tags => container_tags(container),
-          :name => info['Name'],
-          :image => config['Image'],
-          :hostname => config['Hostname'],
+        :id         => container.id,
+        :host       => hostname,
+        :ipaddress  => ipaddress,
+        :env        => container_environment(container),
+        :tags       => container_tags(container),
+        :name       => info['Name'],
+        :image      => config['Image'],
+        :hostname   => config['Hostname'],
       }
       if ports.any?
         ports.each_pair do |port, mapping|
@@ -54,28 +52,30 @@ module ServiceRegistrar
     def service_path(service)
       # step: generate the path from the elements
       path = prefix_path.inject([]) { |paths, x|
-        # step: ignore any illigal formated
+        # step: ignore any illegal formats
         unless x =~ /^\w+:\w+$/
           error "service_path: element: #{x} is invalid, skipping the element"
           next
         end
         elements = x.split(':')
-        element_type = elements[0]
+        element_type  = elements[0]
         element_value = elements[1]
         case element_type
-          when 'environment'
-            paths << service[:env][element_value] || 'unknown'
-          when 'string'
-            paths << element_value
-          when 'service'
-            case element_value
-              when /^PORT$/
-                service_name = "SERVICE_#{service[:port]}_NAME"
-                paths << service[:env][service_name] if service[:env][service_name]
-                paths << service[element_value.downcase.to_sym] unless service[:env][service_name]
-              else
-                paths << service[element_value.downcase.to_sym]
-            end
+        when 'environment'
+          paths << service[:env][element_value] || 'unknown'
+        when 'string'
+          paths << element_value
+        when 'service'
+          case element_value
+          when /^PORT$/
+            service_name = "SERVICE_#{service[:port]}_NAME"
+            paths << service[:env][service_name] if service[:env][service_name]
+            paths << service[element_value.downcase.to_sym] unless service[:env][service_name]
+          else
+            paths << service[element_value.downcase.to_sym]
+          end
+        else
+          raise StandardError, "service_path: service: #{service}, unknown element type: #{element_type}"
         end
         paths
       }.compact

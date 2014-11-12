@@ -10,12 +10,16 @@ module ServiceRegistrar
   module Configuration
     def default_configuration
       {
+        # the path of the docker socker
         'docker'          => env('DOCKER_SOCKET','/var/run/docker.sock'),
+        # the interval between service run
         'interval'        => env('INTERVAL','3000').to_i,
+        # the time in seconds for TTLs on services - used if service_ttl == 'ttl'
         'ttl'             => env('TTL','12000').to_i,
+        # the place to write logs, default to stdout
         'log'             => env('LOGFILE',STDOUT),
         # The logging level
-        'loglevel'        => env('LOGLEVEL','info'),
+        'log_level'       => env('LOGLEVEL','info'),
         # The hostname to use when registering services, should be the docker host
         'hostname'        => env('HOST', %x(hostname -f).chomp ),
         # The ip address to use when advertising the service - namely the ip address of the docker host
@@ -78,10 +82,12 @@ module ServiceRegistrar
       # step: merge the user defined options
       @configuration.merge!(config)
       # step: setup the logger
-      Logging::Logger::init @configuration['log'], loglevel(@configuration['loglevel'])
+      ServiceRegistrar::Logging::Logger.init(@configuration['log'], log_level(@configuration['log_level']))
+      # step: check the backend uri
+      validate_backend(config)
       # checkpoint: we should have a fully merged config now
       debug "validate_configuration: merged configuration: #{@configuration}"
-      # step: verfiy the config is correct
+      # step: verify the config is correct
       validate_configuration @configuration
     end
 
@@ -89,13 +95,15 @@ module ServiceRegistrar
       debug 'validate_configuration: validating the configuration'
       # step: check we have valid service method
       raise ArgumentError, 'invalid service ttl method' unless service_method? configuration['service_ttl']
-      # step: check the backend configuration
-      raise ArgumentError, "the backend: #{backend} does not exits" unless backend? configuration['backend']
       # step: check the docker socket
       validate_docker configuration
       # step: return the configuration
       info "configuration: #{configuration}"
       configuration
+    end
+
+    def validate_backend(configuration)
+      raise ArgumentError, "the backend: #{configuration['backend']} is not supported" unless backend? configuration['backend']
     end
 
     def validate_docker(configuration)

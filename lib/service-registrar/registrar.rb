@@ -5,20 +5,20 @@
 #  vim:ts=2:sw=2:et
 #
 require 'docker-api'
-require 'config'
-require 'utils'
-require 'backends'
-require 'logging'
+require 'misc/config'
+require 'misc/utils'
+require 'misc/errors'
+require 'misc/logging'
 require 'service'
-require 'errors'
 require 'statistics'
+require 'backends'
 
 module ServiceRegistrar
   class Registrar
     include ServiceRegistrar::Logging
     include ServiceRegistrar::Utils
-    include ServiceRegistrar::Configuration
     include ServiceRegistrar::Backends
+    include ServiceRegistrar::Configuration
     include ServiceRegistrar::DockerAPI
     include ServiceRegistrar::Statistics
     include ServiceRegistrar::Service
@@ -64,19 +64,6 @@ module ServiceRegistrar
           exit 1
         end
       end
-    end
-
-    private
-    def backend
-      @backend ||= nil
-      if @backend.nil?
-        info "backend: backend: #{settings['backend']}, interval: #{interval}"
-        # step: load the backend plugin
-        debug "backend: loading the backend provider: #{settings['backend']}"
-        @backend = load_backend settings['backend'], settings
-        debug "backend: backend provider: #{backend.inspect}"
-      end
-      @backend
     end
   end
 end
