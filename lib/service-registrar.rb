@@ -6,7 +6,7 @@
 #
 $:.unshift File.join(File.dirname(__FILE__),'.','./service-registrar')
 # noinspection RubyResolve
-require File.expand_path(registrar)
+require 'registrar'
 
 module ServiceRegistrar
   ROOT = File.expand_path( File.dirname( __FILE__ ) )
