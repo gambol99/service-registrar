@@ -35,7 +35,7 @@ module ServiceRegistrar
         # The method to use when disposing services
         'service_ttl'     => 'prune', # ttl
         # The backend uri for registering services in
-        'backend'  => env('BACKEND','etcd://localhost:4001'),
+        'backend'         => env('BACKEND','etcd://localhost:4001'),
       }
     end
 
@@ -84,7 +84,7 @@ module ServiceRegistrar
       # step: setup the logger
       ServiceRegistrar::Logging::Logger.init(@configuration['log'], log_level(@configuration['log_level']))
       # step: check the backend uri
-      validate_backend(config)
+      validate_backend(@configuration)
       # checkpoint: we should have a fully merged config now
       debug "validate_configuration: merged configuration: #{@configuration}"
       # step: verify the config is correct
