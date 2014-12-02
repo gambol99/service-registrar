@@ -118,7 +118,7 @@ Docker Build & Run
     # git clone https://github.com/gambol99/service-registrar
     # cd service-registrar
     # docker build -t service-registrar -- .
-    # docker run -d -P
+    # docker run -d -P \
         -e HOST=$HOSTNAME \
         -e IPADDRESS=$PRIVATE_IP_ADDRESS \
         -e BACKEND="etcd://<IP>:<PORT>" \
