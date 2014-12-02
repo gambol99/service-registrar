@@ -33,7 +33,7 @@ module ServiceRegistrar
         # This is used when adding to a directoy service, like etcd or zookeeper
         'prefix_path'     => %w(environment:ENVIRONMENT environment:NAME service:PORT service:HOST_PORT service:HOSTNAME),
         # The method to use when disposing services
-        'service_ttl'     => 'prune', # ttl
+        'service_ttl'     => env('SERVICE_METHOD','prune'), # ttl
         # The backend uri for registering services in
         'backend'         => env('BACKEND','etcd://localhost:4001'),
       }

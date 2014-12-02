@@ -11,7 +11,7 @@ module ServiceRegistrar
       def service(path, document, time_to_live)
         api_operation do
           # step: check if the path already exists and if not, set it
-          unless etcd.exists? path
+          unless etcd.exists? path and time_to_live <= 0
             set_options = {:value => document.to_json}.merge(default_options)
             set_options[:ttl] = time_to_live if time_to_live > 0
             info "service: path: #{path}, service: #{document}, options: #{default_options}"
@@ -24,7 +24,6 @@ module ServiceRegistrar
         # step: get a current list of services we are running
         debug "pruning: hostname: #{hostname}, services_path: #{services_path}, available_services: #{available_services}"
         advertised_services = advertised_paths hostname, services_path
-        #debug "pruning: advertised_services: #{advertised_services}"
         # step: deduct what we have from what we have advertised
         bad_services = advertised_services.keys - available_services.keys
         # step: do we have any services that should not be there?
@@ -50,20 +49,6 @@ module ServiceRegistrar
           etcd.delete path, default_options
         end
       end
-
-      #def delete_path(path)
-      #  debug "delete_path: deleting the service path: #{path}"
-      #  entry_path = path
-      #  loop do
-      #    entry = get(entry_path)
-      #    if entry.node.dir and entry.node.children >= 1
-      #      debug "delete_path: breaking out: #{node_path}"
-      #      break
-      #    end
-      #    delete(entry_path)
-      #    node_path = parent_directory(entry_path)
-      #  end
-      #end
 
       def parent_directory(path)
         path.split('/')[0..-2].join('/')

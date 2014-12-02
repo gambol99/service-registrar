@@ -121,7 +121,7 @@ module ServiceRegistrar
     end
 
     def container_tags(container)
-      (container_environment(container)['Tags'] || '').split(',')
+      (container_environment(container)['TAGS'] || '').split(',')
     end
 
     def service_time_to_live
