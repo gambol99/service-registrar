@@ -33,6 +33,10 @@ module ServiceRegistrar
       end
     end
 
+    def to_seconds(milli)
+      milli / 1000
+    end
+
     def wake(milli)
       loop do
         sleep (milli / 1000)
