@@ -122,7 +122,7 @@ module ServiceRegistrar
             'Node'       => document[:host],
             'Address' => document[:ipaddress],
             'Service' => {
-                'Port'    => document[:port].to_i,
+                'Port'    => document[:host_port].to_i,
                 'Service' => consul_service_name(document),
                 'Tags'    => document[:tags],
                 'ID'      => document[:path],
