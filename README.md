@@ -11,7 +11,7 @@ By default service documents are placed under the path
 Containers are broken up into service ports, creating a definition per port i.e
 
     [jest@starfury bin]$ docker ps | grep etcd
-50ccf6e665e0        coreos/etcd:latest       "/opt/etcd/bin/etcd    46 hours ago        Up 46 hours         0.0.0.0:49155->4001/tcp, 0.0.0.0:49156->7001/tcp                                                                                                                                                                                           jovial_albattani
+	50ccf6e665e0        coreos/etcd:latest       "/opt/etcd/bin/etcd    46 hours ago        Up 46 hours         0.0.0.0:49155->4001/tcp, 0.0.0.0:49156->7001/tcp                                                                                                                                                                                           jovial_albattani
 
 Would create definitions;
 
